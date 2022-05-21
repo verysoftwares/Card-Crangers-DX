@@ -24,9 +24,9 @@ function renemy(place)
 		local out = {}
 		local e = allenemies[math.random(#allenemies)]
 		out.id=e
-		if out.id=="Rocopter" then out.sprite=76; out.hp=12; out.maxhp=12 end
-		if out.id=="Cactic" then out.sprite=140; out.hp=16; out.maxhp=16 end
-		if out.id=="Bumbler" then out.sprite=204; out.hp=10; out.maxhp=10 end
+		if out.id=="Rocopter" then out.sprite=76; out.hp=12-3; out.maxhp=12-3 end
+		if out.id=="Cactic" then out.sprite=140; out.hp=16-3; out.maxhp=16-3 end
+		if out.id=="Bumbler" then out.sprite=204; out.hp=10-3; out.maxhp=10-3 end
 		out.y=40
 		if place==1 then out.x=80-40+20 end
 		if place==2 then out.x=80+20 end
@@ -172,6 +172,7 @@ function combovalue()
 		return out
 end
 
+cam={i=1}
 function cursorctrl()
 	old_left=left
 	_,_,left=mouse()
@@ -179,6 +180,21 @@ function cursorctrl()
 			leftclick=left and not old_left
 	else
 			leftclick=false
+	end
+
+	if c.state~='card' and c.state~='hit' then
+			if coll(c.x,c.y,1,1, 240-27,136-32,27,32) then
+					rectb(240-27,136-32,27,32,t%16)
+					print('Skip',240-27+2,136-32+14+8,1,false,1,true)
+					spr(161,240-27+5,136-32+4,0,1,0,0,2,2)
+					if btn(4) or left then
+							nextturn()
+					end
+			else
+					rectb(240-27,136-32,27,32,1)
+					print('Skip',240-27+2,136-32+14+8,1,false,1,true)
+					spr(161,240-27+5,136-32+4,0,1,0,0,2,2)
+			end
 	end
 
 	if c.state=="card" then
@@ -222,24 +238,27 @@ function cursorctrl()
 					end
 			end
 
-			for i,v in ipairs(cards) do
-					if coll(c.x,c.y,1,1, (i-1)*27,136-32,27,32) then
+			for i=cam.i,cam.i+6 do
+					local v=cards[i]
+					if not v then break end
+					local x=(i-cam.i)*27+12
+					if coll(c.x,c.y,1,1, x,136-32,27,32) then
 							--hover
 								
-							rectb((i-1)*27,136-32,27,32,t%16)
-							print(v,(i-1)*27+2,136-32+14+8,t%16,false,1,true)
+							rectb(x,136-32,27,32,t%16)
+							print(v,x+2,136-32+14+8,t%16,false,1,true)
 					else
-							rectb((i-1)*27,136-32,27,32,1)
-							print(v,(i-1)*27+2,136-32+14+8,1,false,1,true)
+							rectb(x,136-32,27,32,1)
+							print(v,x+2,136-32+14+8,1,false,1,true)
 					end
-					if v=="Attack" then spr(33,(i-1)*27+5,136-32+4,0,1,0,0,2,2) end
-					if v=="Defend" then spr(35,(i-1)*27+5,136-32+4,0,1,0,0,2,2) end
-					if v=="Spell" then spr(65,(i-1)*27+5,136-32+4,0,1,0,0,2,2) end
-					if v=="Item" then spr(67,(i-1)*27+5,136-32+4,0,1,0,0,2,2) end
-					if v=="Plus 1" then spr(97,(i-1)*27+5,136-32+4,0,1,0,0,2,2) end
-					if v=="Plus 2" then spr(99,(i-1)*27+5,136-32+4,0,1,0,0,2,2) end
-					if v=="Plus 3" then spr(129,(i-1)*27+5,136-32+4,0,1,0,0,2,2) end
-					if v=="Draft" then spr(131,(i-1)*27+5,136-32+4,0,1,0,0,2,2) end
+					if v=="Attack" then spr(33,x+5,136-32+4,0,1,0,0,2,2) end
+					if v=="Defend" then spr(35,x+5,136-32+4,0,1,0,0,2,2) end
+					if v=="Spell" then spr(65,x+5,136-32+4,0,1,0,0,2,2) end
+					if v=="Item" then spr(67,x+5,136-32+4,0,1,0,0,2,2) end
+					if v=="Plus 1" then spr(97,x+5,136-32+4,0,1,0,0,2,2) end
+					if v=="Plus 2" then spr(99,x+5,136-32+4,0,1,0,0,2,2) end
+					if v=="Plus 3" then spr(129,x+5,136-32+4,0,1,0,0,2,2) end
+					if v=="Draft" then spr(131,x+5,136-32+4,0,1,0,0,2,2) end
 			end
 	end
 	if c.state=="hit" then	
@@ -350,6 +369,14 @@ function cursorctrl()
 			clearcards()
 			c.state='card'
 	end
+	if #cards>7 then
+			rect(0,136-32,12,32,1)
+			rect(240-27-12,136-32,12,32,1)
+			if cam.i>1 then spr(69,2,136-32+12,0) end
+			if cam.i<#cards-6 then spr(70,240-27-12+2,136-32+12,0) end
+			if btnp(2) or (leftclick and coll(c.x,c.y,1,1, 0,136-32,12,32)) then cam.i=cam.i-1; if cam.i<1 then cam.i=1 end end
+			if btnp(3) or (leftclick and coll(c.x,c.y,1,1, 240-27-12,136-32,12,32)) then cam.i=cam.i+1; if cam.i>#cards-6 then cam.i=#cards-6 end end
+	end
 	if c.state=='idle' or sub(c.state,1,4)=='Plus' then
 			for i,e in ipairs(enemies) do
 					if coll(c.x,c.y,1,1, e.x,e.y,32,32) then
@@ -358,10 +385,14 @@ function cursorctrl()
 							print(e.id,c.x+9+1,c.y+1,15,false,1,true)
 					end
 			end
-			for i,v in ipairs(cards) do
+			for i=cam.i,cam.i+6 do
+					local v=cards[i]
+					if not v then break end
+					local x=(i-cam.i)*27+12
+					--if #cards>7 then x=x+12 end
 					local y=136-32
-					if c.combo then for j,w in ipairs(c.combo) do if w[2]==i then y=y-8; rect((i-1)*27,y,27,32,15); break end end end
-					if coll(c.x,c.y,1,1, (i-1)*27,y,27,32) then
+					if c.combo then for j,w in ipairs(c.combo) do if w[2]==i then y=y-8; rect(x,y,27,32,15); break end end end
+					if coll(c.x,c.y,1,1, x,y,27,32) then
 							--hover
 								
 							if btn(4) or left then 
@@ -378,28 +409,28 @@ function cursorctrl()
 									::skip::
 							end
 							
-							rectb((i-1)*27,y,27,32,t%16)
-							print(v,(i-1)*27+2,y+14+8,t%16,false,1,true)
-							if v=="Attack" then spr(33,(i-1)*27+5,y+4,0,1,0,0,2,2) end
-							if v=="Defend" then spr(35,(i-1)*27+5,y+4,0,1,0,0,2,2) end
-							if v=="Spell" then spr(65,(i-1)*27+5,y+4,0,1,0,0,2,2) end
-							if v=="Item" then spr(67,(i-1)*27+5,y+4,0,1,0,0,2,2) end
-							if v=="Plus 1" then spr(97,(i-1)*27+5,y+4,0,1,0,0,2,2) end
-							if v=="Plus 2" then spr(99,(i-1)*27+5,y+4,0,1,0,0,2,2) end
-							if v=="Plus 3" then spr(129,(i-1)*27+5,y+4,0,1,0,0,2,2) end
-							if v=="Draft" then spr(131,(i-1)*27+5,y+4,0,1,0,0,2,2) end
+							rectb(x,y,27,32,t%16)
+							print(v,x+2,y+14+8,t%16,false,1,true)
+							if v=="Attack" then spr(33,x+5,y+4,0,1,0,0,2,2) end
+							if v=="Defend" then spr(35,x+5,y+4,0,1,0,0,2,2) end
+							if v=="Spell" then spr(65,x+5,y+4,0,1,0,0,2,2) end
+							if v=="Item" then spr(67,x+5,y+4,0,1,0,0,2,2) end
+							if v=="Plus 1" then spr(97,x+5,y+4,0,1,0,0,2,2) end
+							if v=="Plus 2" then spr(99,x+5,y+4,0,1,0,0,2,2) end
+							if v=="Plus 3" then spr(129,x+5,y+4,0,1,0,0,2,2) end
+							if v=="Draft" then spr(131,x+5,y+4,0,1,0,0,2,2) end
 
 					else
-							rectb((i-1)*27,y,27,32,1)
-							print(v,(i-1)*27+2,y+14+8,1,false,1,true)
-							if v=="Attack" then spr(33,(i-1)*27+5,y+4,0,1,0,0,2,2) end
-							if v=="Defend" then spr(35,(i-1)*27+5,y+4,0,1,0,0,2,2) end
-							if v=="Spell" then spr(65,(i-1)*27+5,y+4,0,1,0,0,2,2) end
-							if v=="Item" then spr(67,(i-1)*27+5,y+4,0,1,0,0,2,2) end
-							if v=="Plus 1" then spr(97,(i-1)*27+5,y+4,0,1,0,0,2,2) end
-							if v=="Plus 2" then spr(99,(i-1)*27+5,y+4,0,1,0,0,2,2) end
-							if v=="Plus 3" then spr(129,(i-1)*27+5,y+4,0,1,0,0,2,2) end
-							if v=="Draft" then spr(131,(i-1)*27+5,y+4,0,1,0,0,2,2) end
+							rectb(x,y,27,32,1)
+							print(v,x+2,y+14+8,1,false,1,true)
+							if v=="Attack" then spr(33,x+5,y+4,0,1,0,0,2,2) end
+							if v=="Defend" then spr(35,x+5,y+4,0,1,0,0,2,2) end
+							if v=="Spell" then spr(65,x+5,y+4,0,1,0,0,2,2) end
+							if v=="Item" then spr(67,x+5,y+4,0,1,0,0,2,2) end
+							if v=="Plus 1" then spr(97,x+5,y+4,0,1,0,0,2,2) end
+							if v=="Plus 2" then spr(99,x+5,y+4,0,1,0,0,2,2) end
+							if v=="Plus 3" then spr(129,x+5,y+4,0,1,0,0,2,2) end
+							if v=="Draft" then spr(131,x+5,y+4,0,1,0,0,2,2) end
 					end
 			end
 	end
@@ -489,6 +520,8 @@ end
 -- 066:000000000090000009900000999000009990000099900000f9999999f99f9900
 -- 067:0000000000000000000000000000009900000a99000000a0000000a0000000a0
 -- 068:0000000000000000000000009900000099a000000a0000000a0000000a000000
+-- 069:0000990000099000009900000990000009900000009900000009900000009900
+-- 070:0099000000099000000099000000099000000990000099000009900000990000
 -- 073:0000000000000000000000000000000000000000000000000000000c000ccccc
 -- 074:00000000000000000000000000000000000000c000000c00ccccc000c77ccc00
 -- 076:00000000000000000000000000000000000000000000000000000000000ccccc
@@ -551,6 +584,8 @@ end
 -- 157:00bbbbbb00bbbbbb00bbbbbb00bb2bbb00bb2bbb30bb2bbbb3bb2bbbbbbbbbbb
 -- 158:bbbbb300bbbbb300bbbbb300b2bb3300b2bb3300b2bb3300b2bb3300bbbb3300
 -- 159:000000000000000000bbb00000bbbb0000bbbb000bbbbb000bbbb3000bbbb300
+-- 161:00000000000000000000000a000000aa00000000000aa00000aa0a000aa00aaa
+-- 162:0000000000000000aaaaa0000000aa00aa000aa00aa000aaaa0000aaa0000aa0
 -- 168:000bbbb3000bbbb3000bbbbb000bbbbb0000bbbb0000bbbb0000bbbb0000bbbb
 -- 169:03bbbbbb0bbbbb220bbbbb223bbbbb22bbbbbbbbbbbbbbbbb3bbbbbb3bbbbbbb
 -- 170:bbbb3bbbbbbb3bbbbbbbb3bbbbbbb3bbbbbbb3b3bbbbbbb0bbbbbb00bbbbbb00
@@ -559,6 +594,8 @@ end
 -- 173:b3bbbbbb3bbbbb223bbbbb223bbbbb223bbbbbbb0bbbbbbb0bbbbbbb0bbbbbbb
 -- 174:bbbb3300bbbb3000bbbbb000bbbbb00bbbbbb0bbbbbbbbbbbbbbbbbbbbbbbbbb
 -- 175:0bbb33000bbb3300bbbb3300bbbb3300bbbb3300bbbb3000bbb33000bb330000
+-- 177:aa000a00a0000000aa000aaa0aa00a0000aa0a00000aa0000000000000000000
+-- 178:000aa0000aa00000a00000000000000000000000000000000000000000000000
 -- 184:00000bb300000033000000030000000000000000000000000000000000000000
 -- 185:3bbbbbbb3bbbbbbb3bbbbbbb0bbbbbbb0bbbbbbb0bbbbbbb0bbbbbbb0bbbbbbb
 -- 186:bbbbbb00bbbb3000bbbb3000bbbb3000bbb30000bb330000bb330000bb330000
