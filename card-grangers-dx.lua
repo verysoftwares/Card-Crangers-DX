@@ -132,6 +132,7 @@ function nextturn()
 				if j+1>#enemies then 
 				turn=c
 				if c.defending then c.defending=c.defending-1; if c.defending<=0 then c.defending=nil end end
+				c.combo=nil
 				else turn=enemies[j+1] end
 		end
 		turn.state="card"
@@ -143,7 +144,7 @@ function nextturn()
 		end
 end
 
-allcards={"Attack","Defend","Spell","Item",'Plus 1','Plus 2','Plus 3'}
+allcards={"Attack","Defend","Spell","Item",'Plus 1','Plus 2','Plus 3','Draft'}
 
 function rcard()
 		return allcards[math.random( #allcards )]
@@ -172,14 +173,18 @@ function combovalue()
 end
 
 function cursorctrl()
-	local _,_,left=mouse()
+	old_left=left
+	_,_,left=mouse()
+	if not leftclick then
+			leftclick=left and not old_left
+	else
+			leftclick=false
+	end
 
 	if c.state=="card" then
 			top = "Pick 1, sacrifice 2."
 			if not deckcards then deckcards={rcard(),rcard(),rcard()} end
 
-			c.combo=nil
-			
 			for i,v in ipairs(deckcards) do
 					if coll(c.x,c.y,1,1, 80+(i-1)*27,40,27,32) then
 							rectb(80+(i-1)*27,40,27,32,t%16)
@@ -191,11 +196,14 @@ function cursorctrl()
 							if v=="Plus 1" then spr(97,80+(i-1)*27+5,40+4,0,1,0,0,2,2) end
 							if v=="Plus 2" then spr(99,80+(i-1)*27+5,40+4,0,1,0,0,2,2) end
 							if v=="Plus 3" then spr(129,80+(i-1)*27+5,40+4,0,1,0,0,2,2) end
+							if v=="Draft" then spr(131,80+(i-1)*27+5,40+4,0,1,0,0,2,2) end
 
-							if btn(4) or left then
+							if btnp(4) or leftclick then
 									table.insert(cards,v)
-									c.state="idle"
+									if c.draft then c.draft=c.draft-1; if c.draft<=0 then c.draft=nil end end
+									if not c.draft then c.state="idle" end
 									deckcards=nil
+									c.combo=nil
 									sfx(4,12*3+5,12)
 									return
 							end
@@ -210,6 +218,7 @@ function cursorctrl()
 							if v=="Plus 1" then spr(97,80+(i-1)*27+5,40+4,0,1,0,0,2,2) end
 							if v=="Plus 2" then spr(99,80+(i-1)*27+5,40+4,0,1,0,0,2,2) end
 							if v=="Plus 3" then spr(129,80+(i-1)*27+5,40+4,0,1,0,0,2,2) end
+							if v=="Draft" then spr(131,80+(i-1)*27+5,40+4,0,1,0,0,2,2) end
 					end
 			end
 
@@ -230,6 +239,7 @@ function cursorctrl()
 					if v=="Plus 1" then spr(97,(i-1)*27+5,136-32+4,0,1,0,0,2,2) end
 					if v=="Plus 2" then spr(99,(i-1)*27+5,136-32+4,0,1,0,0,2,2) end
 					if v=="Plus 3" then spr(129,(i-1)*27+5,136-32+4,0,1,0,0,2,2) end
+					if v=="Draft" then spr(131,(i-1)*27+5,136-32+4,0,1,0,0,2,2) end
 			end
 	end
 	if c.state=="hit" then	
@@ -335,6 +345,11 @@ function cursorctrl()
 	if c.state=="idle" then
 			top="Select an action."
 	end
+	if c.state=='Draft' then
+			c.draft=1+combovalue()
+			clearcards()
+			c.state='card'
+	end
 	if c.state=='idle' or sub(c.state,1,4)=='Plus' then
 			for i,e in ipairs(enemies) do
 					if coll(c.x,c.y,1,1, e.x,e.y,32,32) then
@@ -372,6 +387,7 @@ function cursorctrl()
 							if v=="Plus 1" then spr(97,(i-1)*27+5,y+4,0,1,0,0,2,2) end
 							if v=="Plus 2" then spr(99,(i-1)*27+5,y+4,0,1,0,0,2,2) end
 							if v=="Plus 3" then spr(129,(i-1)*27+5,y+4,0,1,0,0,2,2) end
+							if v=="Draft" then spr(131,(i-1)*27+5,y+4,0,1,0,0,2,2) end
 
 					else
 							local y=136-32
@@ -385,6 +401,7 @@ function cursorctrl()
 							if v=="Plus 1" then spr(97,(i-1)*27+5,y+4,0,1,0,0,2,2) end
 							if v=="Plus 2" then spr(99,(i-1)*27+5,y+4,0,1,0,0,2,2) end
 							if v=="Plus 3" then spr(129,(i-1)*27+5,y+4,0,1,0,0,2,2) end
+							if v=="Draft" then spr(131,(i-1)*27+5,y+4,0,1,0,0,2,2) end
 					end
 			end
 	end
@@ -516,6 +533,8 @@ end
 -- 127:7c7c7770c77000007770000077000000c0000000000000000000000000000000
 -- 129:0000000000000009000000990000099900000999000000990000000900000000
 -- 130:0000000090000000990000009990000099900000990000009000000000000000
+-- 131:00aaaaaa00a0000000a0000000a0000000a0000000a0000000a0000000a00000
+-- 132:aaaaaa0000000a0000000a0000000a0000000a0000000a0000000a0000000a00
 -- 137:000000bb00000bbb0000bbbb0000bbbb000bbbbb000bbbbb000bbbbb000bbbbb
 -- 138:b0000000bb300000bbb30000bbbb0000bbbb3000bbbb3000bbbb3000bbbb3300
 -- 139:0000000000000000000000000000000000bbb00000bbbb0000bbbb000bbbbb00
@@ -524,6 +543,8 @@ end
 -- 142:b0000000bb300000bbb30000bbbb0000bbbb3000bbbb3000bbbb3000bbbb3300
 -- 145:0009900000999900099999900999999000999900000990000000000000000000
 -- 146:0009900000999900099999900999999000999900000990000000000000000000
+-- 147:00a0000000a0000000a0000000a0000000a0000000a0000000a0000000aaaaaa
+-- 148:00000a0000000a0000000a0000000a0000000a0000000a0000000a00aaaaaa00
 -- 152:00000bb00000bbbb000bbbbb000bbbbb000bbbb3000bbbb3000bbbb3000bbbb3
 -- 153:00bbbbbb00bbbbbb00bbbbbb00bb2bbb00bb2bbb00bb2bbb00bb2bbb03bbbbbb
 -- 154:bbbbb300bbbbb300bbbbb300b2bb3300b2bb3300b2bb330bb2bb33bbbbbb33bb
