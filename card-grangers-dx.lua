@@ -131,7 +131,7 @@ function nextturn()
 				end
 				if j+1>#enemies then 
 				turn=c
-				if c.defending then c.defending=c.defending-1; if c.defending==0 then c.defending=nil end end
+				if c.defending then c.defending=c.defending-1; if c.defending<=0 then c.defending=nil end end
 				else turn=enemies[j+1] end
 		end
 		turn.state="card"
