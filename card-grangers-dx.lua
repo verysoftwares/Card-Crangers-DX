@@ -14,7 +14,7 @@ c.y=24
 c.sprite=5
 turn=c
 
-cards={"Attack","Defend","Spell","Item"}
+cards={"Attack","Defend","Spell","Item",'Draft','Plus 2'}
 
 top=""
 
@@ -200,7 +200,7 @@ function cursorctrl()
 
 							if btnp(4) or leftclick then
 									table.insert(cards,v)
-									if c.draft then c.draft=c.draft-1; if c.draft<=0 then c.draft=nil end end
+									if c.draft then c.draft=c.draft-1; if c.draft<=0 then c.draft=nil; nextturn() end end
 									if not c.draft then c.state="idle" end
 									deckcards=nil
 									c.combo=nil
