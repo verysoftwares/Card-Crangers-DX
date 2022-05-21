@@ -359,13 +359,15 @@ function cursorctrl()
 					end
 			end
 			for i,v in ipairs(cards) do
-					if coll(c.x,c.y,1,1, (i-1)*27,136-32,27,32) then
+					local y=136-32
+					if c.combo then for j,w in ipairs(c.combo) do if w[2]==i then y=y-8; rect((i-1)*27,y,27,32,15); break end end end
+					if coll(c.x,c.y,1,1, (i-1)*27,y,27,32) then
 							--hover
 								
 							if btn(4) or left then 
 									if sub(v,1,4)=='Plus' then
+											if c.combo then for j,w in ipairs(c.combo) do if w[2]==i then goto skip end end end
 											c.combo=c.combo or {}
-											for j,w in ipairs(c.combo) do if w[2]==i then goto skip end end
 											ins(c.combo,{v,i})
 											table.sort(c.combo,function(a,b) return a[2]<b[2] end)
 									else
@@ -376,8 +378,6 @@ function cursorctrl()
 									::skip::
 							end
 							
-							local y=136-32
-							if c.combo then for j,w in ipairs(c.combo) do if w[2]==i then y=y-8; rect((i-1)*27,y,27,32,15); break end end end
 							rectb((i-1)*27,y,27,32,t%16)
 							print(v,(i-1)*27+2,y+14+8,t%16,false,1,true)
 							if v=="Attack" then spr(33,(i-1)*27+5,y+4,0,1,0,0,2,2) end
@@ -390,8 +390,6 @@ function cursorctrl()
 							if v=="Draft" then spr(131,(i-1)*27+5,y+4,0,1,0,0,2,2) end
 
 					else
-							local y=136-32
-							if c.combo then for j,w in ipairs(c.combo) do if w[2]==i then y=y-8; rect((i-1)*27,y,27,32,15); break end end end
 							rectb((i-1)*27,y,27,32,1)
 							print(v,(i-1)*27+2,y+14+8,1,false,1,true)
 							if v=="Attack" then spr(33,(i-1)*27+5,y+4,0,1,0,0,2,2) end
