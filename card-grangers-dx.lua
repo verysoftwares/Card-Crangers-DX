@@ -129,7 +129,9 @@ function nextturn()
 				for i,v in ipairs(enemies) do
 						if v==turn then j=i; break end
 				end
-				if j+1>#enemies then turn=c
+				if j+1>#enemies then 
+				turn=c
+				if c.defending then c.defending=c.defending-1; if c.defending==0 then c.defending=nil end end
 				else turn=enemies[j+1] end
 		end
 		turn.state="card"
@@ -177,8 +179,7 @@ function cursorctrl()
 			if not deckcards then deckcards={rcard(),rcard(),rcard()} end
 
 			c.combo=nil
-			c.defending = false
-	
+			
 			for i,v in ipairs(deckcards) do
 					if coll(c.x,c.y,1,1, 80+(i-1)*27,40,27,32) then
 							rectb(80+(i-1)*27,40,27,32,t%16)
@@ -278,15 +279,29 @@ function cursorctrl()
 			clearcards()
 	end
 	if c.state=="Defend" then
-			top="Defending this turn."
+			c.defending=c.defending or 0
+			if c.defending+1+combovalue()==1 then
+			top="Defending for 1 turn."
+			else
+			top=string.format("Defending for %d turns.",c.defending+1+combovalue())
+			end
 			c.state="hit"
 			c.hit=nil
 			c.anim=100
 			clearcards()
-			c.defending = true
+			c.defending = c.defending+1+combovalue()
 	end
 	if c.state=="Attack" then
 			top = "Attack whom?"
+			if #enemies==1 then
+					top = ""
+					sfx(3,12*3+5,80)
+					c.state="hit"
+					c.anim=60
+					c.hit=enemies[1]
+					c.hit.hp=c.hit.hp-(2+combovalue()*2)
+					clearcards()
+			else
 			for i,e in ipairs(enemies) do
 					if coll(c.x,c.y,1,1, e.x,e.y,32,32) then
 							--hover
@@ -303,9 +318,10 @@ function cursorctrl()
 							end
 					end
 			end
+			end
 	end
 	if c.state=="Item" then
-			top="6 HP restored."
+			top=string.format("%d HP restored.",3+combovalue()*3)
 			c.hp=c.hp+(3+combovalue()*3)
 			if c.hp>c.maxhp then c.hp=c.maxhp end
 			c.state="hit"
