@@ -14,7 +14,7 @@ c.y=24
 c.sprite=5
 turn=c
 
-cards={"Attack","Defend","Spell","Item",'Draft','Plus 2'}
+cards={"Attack","Defend","Spell","Item"}
 
 top=""
 
