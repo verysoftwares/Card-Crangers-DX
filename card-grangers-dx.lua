@@ -24,9 +24,9 @@ function renemy(place)
 		local out = {}
 		local e = allenemies[math.random(#allenemies)]
 		out.id=e
-		if out.id=="Rocopter" then out.sprite=76; out.hp=12-3; out.maxhp=12-3 end
+		if out.id=="Rocopter" then out.sprite=76; out.hp=10-3; out.maxhp=10-3 end
 		if out.id=="Cactic" then out.sprite=140; out.hp=16-3; out.maxhp=16-3 end
-		if out.id=="Bumbler" then out.sprite=204; out.hp=10-3; out.maxhp=10-3 end
+		if out.id=="Bumbler" then out.sprite=204; out.hp=12-3; out.maxhp=12-3 end
 		out.y=40
 		if place==1 then out.x=80-40+20 end
 		if place==2 then out.x=80+20 end
@@ -185,7 +185,7 @@ function cursorctrl()
 	if c.state~='card' and c.state~='hit' then
 			if coll(c.x,c.y,1,1, 240-27,136-32,27,32) then
 					rectb(240-27,136-32,27,32,t%16)
-					print('Skip',240-27+2,136-32+14+8,1,false,1,true)
+					print('Skip',240-27+2,136-32+14+8,t%16,false,1,true)
 					spr(161,240-27+5,136-32+4,0,1,0,0,2,2)
 					if btn(4) or left then
 							nextturn()
