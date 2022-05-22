@@ -14,7 +14,7 @@ c.y=24
 c.sprite=5
 turn=c
 
-cards={"Attack","Defend","Spell","Item"}
+cards={"Attack","Defend","Spell","Item",'Honey','Spike','Sleep','Clone'}
 
 top=""
 
@@ -97,12 +97,14 @@ function TIC()
 					else
 							local dmg=0
 							for i,e in ipairs(enemies) do
+									if not e.pending then
 									dmg=dmg+e.atk
+									end
 							end
 							if #enemies>1 then
 							top=string.format('Enemies hit you for %d HP!',dmg)
 							else
-							top=string.format('%s hit you for %d HP!',enemies[1].id,enemies[1].atk)
+							top=string.format('%s hit you for %d HP!',enemies[1].id,dmg)
 							end
 							sfx(1,12*2,80,2)
 							turn.state="hit"
@@ -164,6 +166,11 @@ function nextturn()
 		if turn==c then
 				--turn=enemies[1]
 				turn=enemies
+				for i,e in ipairs(enemies) do
+						if math.random(1,5)==1 then
+								e.pending=true
+						end
+				end
 				if #enemies==0 then
 						encounter=encounter+1
 						turn=c
@@ -212,12 +219,12 @@ function clearcards()
 		local cno_rem=false
 		for j=#c.combo,1,-1 do
 				local w=c.combo[j]; 
-				if c.cardno>w[2] and not cno_rem then
+				if (not cno_rem) and c.cardno>w[2] then
 				rem(cards,c.cardno)
 				cno_rem=true
 				end
 				rem(cards,w[2])
-				if not cno_rem and c.cardno<w[2] and ((not c.combo[j-1]) or (c.combo[j-1] and c.cardno>c.combo[j-1][2])) then
+				if (not cno_rem) and c.cardno<w[2] and ((not c.combo[j-1]) or (c.combo[j-1] and c.cardno>c.combo[j-1][2])) then
 				rem(cards,c.cardno)
 				cno_rem=true
 				end
@@ -285,6 +292,10 @@ function cursorctrl()
 							if v=="Plus 2" then spr(99,80+(i-1)*27+5,40+4,0,1,0,0,2,2) end
 							if v=="Plus 3" then spr(129,80+(i-1)*27+5,40+4,0,1,0,0,2,2) end
 							if v=="Draft" then spr(131,80+(i-1)*27+5,40+4,0,1,0,0,2,2) end
+							if v=="Honey" then spr(163,80+(i-1)*27+5,40+4,0,1,0,0,2,2) end
+							if v=="Spike" then spr(193,80+(i-1)*27+5,40+4,0,1,0,0,2,2) end
+							if v=="Sleep" then spr(195,80+(i-1)*27+5,40+4,0,1,0,0,2,2) end
+							if v=="Clone" then spr(225,80+(i-1)*27+5,40+4,0,1,0,0,2,2) end
 
 							if btnp(4) or leftclick then
 									table.insert(cards,v)
@@ -308,6 +319,10 @@ function cursorctrl()
 							if v=="Plus 2" then spr(99,80+(i-1)*27+5,40+4,0,1,0,0,2,2) end
 							if v=="Plus 3" then spr(129,80+(i-1)*27+5,40+4,0,1,0,0,2,2) end
 							if v=="Draft" then spr(131,80+(i-1)*27+5,40+4,0,1,0,0,2,2) end
+							if v=="Honey" then spr(163,80+(i-1)*27+5,40+4,0,1,0,0,2,2) end
+							if v=="Spike" then spr(193,80+(i-1)*27+5,40+4,0,1,0,0,2,2) end
+							if v=="Sleep" then spr(195,80+(i-1)*27+5,40+4,0,1,0,0,2,2) end
+							if v=="Clone" then spr(225,80+(i-1)*27+5,40+4,0,1,0,0,2,2) end
 					end
 			end
 
@@ -332,6 +347,10 @@ function cursorctrl()
 					if v=="Plus 2" then spr(99,x+5,136-32+4,0,1,0,0,2,2) end
 					if v=="Plus 3" then spr(129,x+5,136-32+4,0,1,0,0,2,2) end
 					if v=="Draft" then spr(131,x+5,136-32+4,0,1,0,0,2,2) end
+					if v=="Honey" then spr(163,x+5,136-32+4,0,1,0,0,2,2) end
+					if v=="Spike" then spr(193,x+5,136-32+4,0,1,0,0,2,2) end
+					if v=="Sleep" then spr(195,x+5,136-32+4,0,1,0,0,2,2) end
+					if v=="Clone" then spr(225,x+5,136-32+4,0,1,0,0,2,2) end
 			end
 	end
 	if c.state=="hit" then	
@@ -396,10 +415,12 @@ function cursorctrl()
 	if c.state=="Attack" then
 			top = "Attack whom?"
 			if #enemies==1 then
-					top = ""
+					local e=enemies[1]
+					if c.combo then top=string.format('Hit %s for %d+%d HP.',e.id,2,combovalue()*2)
+					else top=string.format("Hit %s for 2 HP.",e.id) end
 					sfx(3,12*3+5,80,2)
 					c.state="hit"
-					c.anim=60
+					c.anim=90
 					c.hit=enemies[1]
 					c.hit.hp=c.hit.hp-(2+combovalue()*2)
 					clearcards()
@@ -495,7 +516,10 @@ function cursorctrl()
 							if v=="Plus 2" then spr(99,x+5,y+4,0,1,0,0,2,2) end
 							if v=="Plus 3" then spr(129,x+5,y+4,0,1,0,0,2,2) end
 							if v=="Draft" then spr(131,x+5,y+4,0,1,0,0,2,2) end
-
+							if v=="Honey" then spr(163,x+5,y+4,0,1,0,0,2,2) end
+							if v=="Spike" then spr(193,x+5,y+4,0,1,0,0,2,2) end
+							if v=="Sleep" then spr(195,x+5,y+4,0,1,0,0,2,2) end
+							if v=="Clone" then spr(225,x+5,y+4,0,1,0,0,2,2) end
 					else
 							rectb(x,y,27,32,1)
 							print(v,x+2,y+14+8,1,false,1,true)
@@ -507,6 +531,10 @@ function cursorctrl()
 							if v=="Plus 2" then spr(99,x+5,y+4,0,1,0,0,2,2) end
 							if v=="Plus 3" then spr(129,x+5,y+4,0,1,0,0,2,2) end
 							if v=="Draft" then spr(131,x+5,y+4,0,1,0,0,2,2) end
+							if v=="Honey" then spr(163,x+5,y+4,0,1,0,0,2,2) end
+							if v=="Spike" then spr(193,x+5,y+4,0,1,0,0,2,2) end
+							if v=="Sleep" then spr(195,x+5,y+4,0,1,0,0,2,2) end
+							if v=="Clone" then spr(225,x+5,y+4,0,1,0,0,2,2) end
 					end
 			end
 	end
