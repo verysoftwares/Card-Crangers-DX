@@ -42,6 +42,8 @@ end
 
 enemies={renemy(4),renemy(5)}
 
+music(0)
+
 function TIC()
 
 	--if btn(0) and c.y>0 then c.y=c.y-1 end
@@ -80,13 +82,13 @@ function TIC()
 			if turn.state=="card" then
 					if c.defending then
 							top=turn.id.." was blocked."
-							sfx(2,12*2,80)
+							sfx(2,12*2,80,2)
 							turn.state="hit"
 							turn.anim=100
 							turn.hit=nil
 					else
 							top=turn.id.." hits you!"
-							sfx(1,12*2,80)
+							sfx(1,12*2,80,2)
 							turn.state="hit"
 							turn.anim=100
 							turn.hit=c
@@ -222,7 +224,7 @@ function cursorctrl()
 									if not c.draft then c.state="idle" end
 									deckcards=nil
 									c.combo=nil
-									sfx(4,12*3+5,12)
+									sfx(4,12*3+5,12,2)
 									return
 							end
 							
@@ -306,7 +308,7 @@ function cursorctrl()
 					if enemies[i].hp<=0 then table.remove(enemies,i) end
 			end
 			c.anim=100
-			sfx(0,12*4,80)
+			sfx(0,12*4,80,2)
 			clearcards()
 	end
 	if c.state=="Defend" then
@@ -326,7 +328,7 @@ function cursorctrl()
 			top = "Attack whom?"
 			if #enemies==1 then
 					top = ""
-					sfx(3,12*3+5,80)
+					sfx(3,12*3+5,80,2)
 					c.state="hit"
 					c.anim=60
 					c.hit=enemies[1]
@@ -341,7 +343,7 @@ function cursorctrl()
 							if btn(4) or left then
 									if c.combo then top=string.format('Hit %s for %d+%d HP.',e.id,2,combovalue()*2)
 									else top=string.format("Hit %s for 2 HP.",e.id) end
-									sfx(3,12*3+5,80)
+									sfx(3,12*3+5,80,2)
 									c.state="hit"
 									c.anim=90
 									c.hit=e
@@ -410,7 +412,7 @@ function cursorctrl()
 									c.cardno=i
 									end
 									c.state=v
-									sfx(4,12*3+5,12)
+									sfx(4,12*3+5,12,2)
 									::skip::
 							end
 							
