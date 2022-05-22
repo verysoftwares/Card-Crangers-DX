@@ -20,6 +20,9 @@ top=""
 
 allenemies={"Rocopter","Cactic","Bumbler"}
 
+drafted=0
+defeated=0
+
 function renemy(place)
 		local out = {}
 		local e = allenemies[math.random(#allenemies)]
@@ -127,8 +130,17 @@ function TIC()
 	local w= print(top,0,1,15)
 	print(top,240/2-w/2,1,1)
 
-	local w= print(string.format("%d/%d",c.hp,c.maxhp),0,-6)
-	print(string.format("%d/%d",c.hp,c.maxhp),240/2-w/2,136-32-8+2-64-32+8)
+	if c.state~='card' then
+	local w= print(string.format("HP: %d/%d",c.hp,c.maxhp),0,-6)
+	print(string.format("HP: %d/%d",c.hp,c.maxhp),240/2-w/2,136-32-8+2-64-32+8)
+
+	local w= print(string.format("Cards drafted: %d",drafted),0,-6)
+	print(string.format("Cards drafted: %d",drafted),240/2-w/2,136-32-8+2-64-32+8+8,12)
+
+	local w= print(string.format("Enemies defeated: %d",defeated),0,-6)
+	print(string.format("Enemies defeated: %d",defeated),240/2-w/2,136-32-8+2-64-32+8+8+8,9)
+	end
+
 	spr(c.sprite,c.x,c.y,4,1,0,0,2,2)
 	
 	t=t+1
@@ -255,6 +267,7 @@ function cursorctrl()
 
 							if btnp(4) or leftclick then
 									table.insert(cards,v)
+									drafted=drafted+1
 									if c.draft then c.draft=c.draft-1; if c.draft<=0 then c.draft=nil; c.state='waitsfx'; c.draftt=30 end
 									elseif not c.draft then c.state="idle" end
 									deckcards=nil
@@ -313,7 +326,7 @@ function cursorctrl()
 			c.anim=c.anim-1
 			if c.anim==0 then 
 			for i=#enemies,1,-1 do
-					if enemies[i].hp<=0 then table.remove(enemies,i) end
+					if enemies[i].hp<=0 then table.remove(enemies,i); defeated=defeated+1 end
 			end
 			c.state="idle"; nextturn(); return 
 			end
@@ -340,7 +353,7 @@ function cursorctrl()
 					e.hp=e.hp-(1+combovalue())
 			end
 			for i=#enemies,1,-1 do
-					if enemies[i].hp<=0 then table.remove(enemies,i) end
+					if enemies[i].hp<=0 then table.remove(enemies,i); defeated=defeated+1 end
 			end
 			c.anim=100
 			sfx(0,12*4,80,2)
