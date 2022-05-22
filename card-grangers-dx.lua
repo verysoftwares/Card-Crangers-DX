@@ -49,6 +49,8 @@ function TIC()
 	--if btn(2) and c.x>0 then c.x=c.x-1 end
 	--if btn(3) and c.x<240-9 then c.x=c.x+1 end
 
+	poke(0x3FFB,0) -- hide system cursor
+
 	local mx,my,left=mouse()
 	c.x=mx; c.y=my
 
@@ -369,7 +371,7 @@ function cursorctrl()
 			clearcards()
 			c.state='card'
 	end
-	if #cards>7 then
+	if #cards>7 and c.state~='Attack' and c.state~='hit' then
 			rect(0,136-32,12,32,1)
 			rect(240-27-12,136-32,12,32,1)
 			if cam.i>1 then spr(69,2,136-32+12,0) end
