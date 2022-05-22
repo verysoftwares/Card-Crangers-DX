@@ -8,7 +8,7 @@ ins=table.insert
 rem=table.remove
 
 t=0
-c={id="Player",state="card",hp=12,maxhp=12}
+c={id="Player",state="card",hp=18,maxhp=18}
 c.x=96
 c.y=24
 c.sprite=5
@@ -28,8 +28,8 @@ function renemy(place)
 		local e = allenemies[math.random(#allenemies)]
 		out.id=e
 		if out.id=="Rocopter" then out.sprite=76; out.hp=10-3; out.maxhp=10-3; out.atk=1 end
-		if out.id=="Cactic" then out.sprite=140; out.hp=16-3; out.maxhp=16-3; out.atk=1 end
-		if out.id=="Bumbler" then out.sprite=204; out.hp=12-3; out.maxhp=12-3; out.atk=1 end
+		if out.id=="Cactic" then out.sprite=140; out.hp=16-3; out.maxhp=16-3; out.atk=2 end
+		if out.id=="Bumbler" then out.sprite=204; out.hp=8; out.maxhp=8; out.atk=3 end
 		out.y=40
 		if place==1 then out.x=80-40+20 end
 		if place==2 then out.x=80+20 end
@@ -84,7 +84,11 @@ function TIC()
 			end
 			if turn.state=="card" then
 					if c.defending then
+							if #enemies>1 then
 							top='Enemies were blocked.'
+							else
+							top=string.format('%s was blocked.',enemies[1].id)
+							end
 							sfx(2,12*2,80,2)
 							turn.state='hit'
 							turn.anim=100
@@ -94,7 +98,11 @@ function TIC()
 							for i,e in ipairs(enemies) do
 									dmg=dmg+e.atk
 							end
+							if #enemies>1 then
 							top=string.format('Enemies hit you for %d HP!',dmg)
+							else
+							top=string.format('%s hit you for %d HP!',enemies[1].id,enemies[1].atk)
+							end
 							sfx(1,12*2,80,2)
 							turn.state="hit"
 							turn.anim=100
@@ -435,7 +443,8 @@ function cursorctrl()
 			for i,e in ipairs(enemies) do
 					if coll(c.x,c.y,1,1, e.x,e.y,32,32) then
 							--hover
-							rect(c.x+9,c.y,string.len(e.id)*4,7,1)
+							local w=print(e.id,0,-6,15,false,1,true)
+							rect(c.x+9,c.y,w+1,7,1)
 							print(e.id,c.x+9+1,c.y+1,15,false,1,true)
 					end
 			end
@@ -689,6 +698,41 @@ end
 -- 254:3399e9e939399e9e999999e99999999300999999999000990000000000000000
 -- 255:e3e3ee003e333e00e3333ee0e33333e0333333e0999e9e000000000000000000
 -- </TILES>
+
+-- <SPRITES>
+-- 000:000000550005555b0005bbbb005bbbbb005bbbbb005bbbbb0055bbbb0555bbbb
+-- 001:55555555bbbbbbb5bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+-- 002:005555b5555bbbbbb5bbbbbbbbbbbbbbbbbbbbbbb5bbbbbbb5bbbbbbb55bbbbb
+-- 003:55000000b5500000bbb55000bbbb5000bbbb5500bbbbb500bbbbb500bbbb5500
+-- 004:000000550005555b0005bbbb005bbbbb005bbbbb005bbbbb0055bbbb0555bbbb
+-- 005:55555555bbbbbbb5bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+-- 006:005555b5555bbbbbb5bbbbbbbbbbbbbbbbbbbbbbb5bbbbbbb5bbbbbbb55bbbbb
+-- 007:55000000b5500000bbb55000bbbb5000bbbb5500bbbbb500bbbbb500bbbb5500
+-- 016:055b5bbb55bbb55b5bbbbb555bbbbbb55bbbbbbb5b55bbbb5555bbbb05b55b55
+-- 017:bbbbbbbbbbbbbbb5bbbbb55555555511bb411411bb41141151411111bb414411
+-- 018:5555bbbb51155555111414b5411414bb411414bb411414bb4111141141144441
+-- 019:bbb5b500bb55b500555bb500bbbbb550bbbbbb50bbbbb5005bbb555055555b55
+-- 020:055b5bbb55bbb55b5bbbbb555bbbbbb55bbbbbbb5b55bbbb5555bbbb05b55b55
+-- 021:bbbbbbbbbbbbbbb5bbbbb55555555511bb411411bb41141151411111bb411111
+-- 022:5555bbbb51155555111414b5411414bb411414bb411414bb4111141141111441
+-- 023:bbb5b500bb55b500555bb500bbbbb550bbbbbb50bbbbb5005bbb555055555b55
+-- 032:55bbb55b5bbbbbbb5bb5bbbb55b55bbb05555bb1055055110000000000000000
+-- 033:bb411141b1414111b41111111411111111411144004111410041144100141411
+-- 034:4141114441114114411111141111111444411114114111411144114011141410
+-- 035:b55bbb50bbb5bb50bbb555501bb5000011550000000000000000000000000000
+-- 036:55bbb55b5bbbbbbb5bb5bbbb55b55bbb05555bb1055055110000000000000000
+-- 037:bb414111b1411441b41111111411111111411144004114410041144100141411
+-- 038:4111414441441114411111141111111444411114114411411144114011141410
+-- 039:b55bbb50bbb5bb50bbb555501bb5000011550000000000000000000000000000
+-- 048:0000000000000000000000000000000000000000000114440144444114111111
+-- 049:0004141100141444004111110141441414111411411144111114411114441111
+-- 050:1114140044441410111111404144114011411141114111441114111111144411
+-- 051:0000000000000000000000000000000000000000411000001444411011114444
+-- 052:0000000000000000000000000000000000000000000114440144444114111111
+-- 053:0004144400141111004111140141441114111411411144111114411114441111
+-- 054:4444140011111410411111401144114011411141114111441114111111144411
+-- 055:0000000000000000000000000000000000000000411000001444411011114444
+-- </SPRITES>
 
 -- <WAVES>
 -- 000:00000000ffffffff00000000ffffffff
