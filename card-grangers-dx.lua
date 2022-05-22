@@ -8,7 +8,7 @@ ins=table.insert
 rem=table.remove
 
 t=0
-c={id="Player",state="card",hp=18,maxhp=18,honey=0}
+c={id="Player",state="card",hp=18,maxhp=18,honey=0,spike=0}
 c.x=96
 c.y=24
 c.sprite=5
@@ -93,6 +93,17 @@ function TIC()
 											top=string.format('Your attacks are weakened by %d!',c.honey)
 											turn.anim=140		
 											turn.pending=nil
+									elseif enemycard(turn.id)=='Spike' then
+											c.spike=c.spike+1
+											c.spikemem=c.spikemem or {}
+											local ei
+											for i,e in ipairs(enemies) do if e==turn then ei=i; break end end
+											for j,d in ipairs(c.spikemem) do if d[1]==ei then d[2]=d[2]+1; goto skip end end
+											ins(c.spikemem,{ei,1})
+											::skip::
+											top=string.format('You now take %dx damage!',c.spike+1)
+											turn.anim=140		
+											turn.pending=nil
 									else
 											turn.pending=nil
 											nextturn()
@@ -111,10 +122,11 @@ function TIC()
 							turn.anim=100
 							turn.hit=nil
 					else
+							turn.hit=c
 							local dmg=0
 							for i,e in ipairs(enemies) do
 									if not e.pending then
-									dmg=dmg+e.atk
+									dmg=dmg+e.atk*(turn.hit.spike+1)
 									end
 							end
 							if #enemies>1 then
@@ -125,7 +137,6 @@ function TIC()
 							sfx(1,12*2,80,2)
 							turn.state="hit"
 							turn.anim=100
-							turn.hit=c
 							turn.hit.hp=turn.hit.hp-dmg
 					end
 					--[[
@@ -400,15 +411,19 @@ function cursorctrl()
 			c.anim=c.anim-1
 			if c.anim==0 then 
 			local honeyrem=false
+			local spikerem=false
 			for i=#enemies,1,-1 do
 					local e=enemies[i]
 					if e.hp<=0 then table.remove(enemies,i); defeated=defeated+1 
 					if c.honeymem then for j,d in ipairs(c.honeymem) do
 							if d[1]==i then c.honey=c.honey-d[2]; top=string.format('Player is free from %s\'s Honey!',e.id); c.anim=140; c.hit=nil; honeyrem=true break end
 					end end
+					if c.spikemem then for j,d in ipairs(c.spikemem) do
+							if d[1]==i then c.spike=c.spike-d[2]; top=string.format('Player is free from %s\'s Spike!',e.id); c.anim=140; c.hit=nil; spikerem=true break end
+					end end
 					end
 			end
-			if not honeyrem then
+			if not honeyrem and not spikerem then
 			c.state="idle"; nextturn(); return
 			end
 			end
