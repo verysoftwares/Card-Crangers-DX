@@ -95,7 +95,8 @@ function TIC()
 							sfx(1,12*2,80,2)
 							turn.state="hit"
 							turn.anim=100
-							turn.hit=nil
+							turn.hit=c
+							turn.hit.hp=turn.hit.hp-dmg
 					end
 					--[[
 					if c.defending then
@@ -227,6 +228,13 @@ function cursorctrl()
 			end
 	end
 
+	if c.state=='waitsfx' then
+			c.draftt=c.draftt-1
+			if c.draftt<=0 then
+					nextturn()
+			end
+	end
+
 	if c.state=="card" then
 			top = "Pick 1, sacrifice 2."
 			if not deckcards then deckcards={rcard(),rcard(),rcard()} end
@@ -246,8 +254,8 @@ function cursorctrl()
 
 							if btnp(4) or leftclick then
 									table.insert(cards,v)
-									if c.draft then c.draft=c.draft-1; if c.draft<=0 then c.draft=nil; nextturn() end end
-									if not c.draft then c.state="idle" end
+									if c.draft then c.draft=c.draft-1; if c.draft<=0 then c.draft=nil; c.state='waitsfx'; c.draftt=30 end
+									elseif not c.draft then c.state="idle" end
 									deckcards=nil
 									c.combo=nil
 									sfx(4,12*3+5,12,2)
@@ -402,7 +410,7 @@ function cursorctrl()
 			clearcards()
 			c.state='card'
 	end
-	if #cards>7 and c.state~='Attack' and c.state~='hit' then
+	if #cards>7 and c.state~='Attack' and c.state~='hit' and c.state~='waitsfx' then
 			rect(0,136-32,12,32,1)
 			rect(240-27-12,136-32,12,32,1)
 			if cam.i>1 then spr(69,2,136-32+12,0) end
