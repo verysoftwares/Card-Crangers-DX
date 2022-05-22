@@ -91,7 +91,7 @@ function TIC()
 							for i,e in ipairs(enemies) do
 									dmg=dmg+e.atk
 							end
-							top=string.format('Enemies hit you for %d damage!',dmg)
+							top=string.format('Enemies hit you for %d HP!',dmg)
 							sfx(1,12*2,80,2)
 							turn.state="hit"
 							turn.anim=100
@@ -231,6 +231,7 @@ function cursorctrl()
 	if c.state=='waitsfx' then
 			c.draftt=c.draftt-1
 			if c.draftt<=0 then
+					c.draftt=nil
 					nextturn()
 			end
 	end
@@ -391,7 +392,6 @@ function cursorctrl()
 	if c.state=="Item" then
 			if c.combo then top=string.format('%d+%d HP restored.',3,combovalue()*3)
 			else top="3 HP restored." end
-			top=string.format("%d HP restored.",3+combovalue()*3)
 			c.hp=c.hp+(3+combovalue()*3)
 			if c.hp>c.maxhp then c.hp=c.maxhp end
 			c.state="hit"
