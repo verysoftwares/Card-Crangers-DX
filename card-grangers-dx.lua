@@ -8,7 +8,7 @@ ins=table.insert
 rem=table.remove
 
 t=0
-c={id="Player",state="card",hp=18,maxhp=18}
+c={id="Player",state="card",hp=18,maxhp=18,honey=0}
 c.x=96
 c.y=24
 c.sprite=5
@@ -80,10 +80,26 @@ function TIC()
 									return
 							end
 
-							nextturn(); return
+							if not turn.pending then nextturn(); return
+							else 
+									if enemycard(turn.id)=='Honey' then
+											c.honey=c.honey+1
+											c.honeymem=c.honeymem or {}
+											local ei
+											for i,e in ipairs(enemies) do if e==turn then ei=i; break end end
+											for j,d in ipairs(c.honeymem) do if d[1]==ei then d[2]=d[2]+1; goto skip end end
+											ins(c.honeymem,{ei,1})
+											::skip::
+											top=string.format('Your attacks are weakened by %d!',c.honey)
+											turn.anim=140		
+											turn.pending=nil
+									else
+											turn.pending=nil
+											nextturn()
+									end
+							end
 					end
-			end
-			if turn.state=="card" then
+			elseif turn.state=="card" then
 					if c.defending then
 							if #enemies>1 then
 							top='Enemies were blocked.'
@@ -161,6 +177,14 @@ function TIC()
 	
 	t=t+1
 end
+
+function enemycard(id)
+		if id=='Rocopter' then return 'Sleep' end
+		if id=='Cactic' then return 'Spike' end
+		if id=='Bumbler' then return 'Honey' end
+		if id=='Yggdra' then return 'Clone' end
+end
+
 encounter=1
 function nextturn()
 		if turn==c then
@@ -182,6 +206,7 @@ function nextturn()
 						turn.state="card"
 						return
 				end
+				turn.state="card"
 		else
 				--[[local j
 				for i,v in ipairs(enemies) do
@@ -193,13 +218,22 @@ function nextturn()
 				c.combo=nil
 				else turn=enemies[j+1] end
 				]]
-				if turn==enemies then
+				local pending=nil
+				for i,e in ipairs(enemies) do
+						if e.pending then pending=e; break end
+				end
+				if not pending then
 						turn=c
-						if c.defending then c.defending=c.defending-1; if c.defending<=0 then c.defending=nil end end
-						c.combo=nil
+						if turn.defending then turn.defending=turn.defending-1; if turn.defending<=0 then turn.defending=nil end end
+						turn.combo=nil
+						turn.state='card'
+				else
+						turn=pending
+						turn.state='hit'
+						turn.anim=140
+						top=string.format('%s uses card: %s!',turn.id,enemycard(turn.id))
 				end
 		end
-		turn.state="card"
 		for i,e in ipairs(enemies) do
 				spr(e.sprite-t%60//50*4,e.x,e.y,0,1,0,0,4,4)
 		end
@@ -253,7 +287,7 @@ function cursorctrl()
 			leftclick=false
 	end
 
-	if c.state~='card' and c.state~='hit' then
+	if c.state~='card' and c.state~='hit' and c.state~='waitsfx' then
 			if coll(c.x,c.y,1,1, 240-27,136-32,27,32) then
 					rectb(240-27,136-32,27,32,t%16)
 					print('Skip',240-27+2,136-32+14+8,t%16,false,1,true)
@@ -365,10 +399,18 @@ function cursorctrl()
 			end
 			c.anim=c.anim-1
 			if c.anim==0 then 
+			local honeyrem=false
 			for i=#enemies,1,-1 do
-					if enemies[i].hp<=0 then table.remove(enemies,i); defeated=defeated+1 end
+					local e=enemies[i]
+					if e.hp<=0 then table.remove(enemies,i); defeated=defeated+1 
+					if c.honeymem then for j,d in ipairs(c.honeymem) do
+							if d[1]==i then c.honey=c.honey-d[2]; top=string.format('Player is free from %s\'s Honey!',e.id); c.anim=140; c.hit=nil; honeyrem=true break end
+					end end
+					end
 			end
-			c.state="idle"; nextturn(); return 
+			if not honeyrem then
+			c.state="idle"; nextturn(); return
+			end
 			end
 	else
 			if c.state~="card" then
@@ -385,15 +427,13 @@ function cursorctrl()
 			if btn(5) then c.state="idle" end
 	end
 	if c.state=="Spell" then
-			if c.combo then top=string.format('Hit all enemies for %d+%d HP.',1,combovalue())
-			else top="Hit all enemies for 1 HP." end
+			if c.combo then top=string.format('Hit all enemies for %d+%d HP.',1-c.honey,combovalue())
+			else top=string.format("Hit all enemies for %d HP.",1-c.honey) end
 			c.state="hit"
 			c.hit=enemies
 			for i,e in ipairs(enemies) do
-					e.hp=e.hp-(1+combovalue())
-			end
-			for i=#enemies,1,-1 do
-					if enemies[i].hp<=0 then table.remove(enemies,i); defeated=defeated+1 end
+					e.hp=e.hp-(1+combovalue()-c.honey)
+					if e.hp>e.maxhp then e.hp=e.maxhp end 
 			end
 			c.anim=100
 			sfx(0,12*4,80,2)
@@ -416,13 +456,14 @@ function cursorctrl()
 			top = "Attack whom?"
 			if #enemies==1 then
 					local e=enemies[1]
-					if c.combo then top=string.format('Hit %s for %d+%d HP.',e.id,2,combovalue()*2)
-					else top=string.format("Hit %s for 2 HP.",e.id) end
+					if c.combo then top=string.format('Hit %s for %d+%d HP.',e.id,2-c.honey,combovalue()*2)
+					else top=string.format("Hit %s for %d HP.",e.id,2-c.honey) end
 					sfx(3,12*3+5,80,2)
 					c.state="hit"
 					c.anim=90
 					c.hit=enemies[1]
-					c.hit.hp=c.hit.hp-(2+combovalue()*2)
+					c.hit.hp=c.hit.hp-(2+combovalue()*2-c.honey)
+					if c.hit.hp>c.hit.maxhp then c.hit.hp=c.hit.maxhp end 
 					clearcards()
 			else
 			for i,e in ipairs(enemies) do
@@ -431,13 +472,14 @@ function cursorctrl()
 							rect(c.x+9,c.y,string.len(e.id)*4,7,1)
 							print(e.id,c.x+9+1,c.y+1,15,false,1,true)
 							if btn(4) or left then
-									if c.combo then top=string.format('Hit %s for %d+%d HP.',e.id,2,combovalue()*2)
-									else top=string.format("Hit %s for 2 HP.",e.id) end
+									if c.combo then top=string.format('Hit %s for %d+%d HP.',e.id,2-c.honey,combovalue()*2)
+									else top=string.format("Hit %s for %d HP.",e.id,2-c.honey) end
 									sfx(3,12*3+5,80,2)
 									c.state="hit"
 									c.anim=90
 									c.hit=e
-									c.hit.hp=c.hit.hp-(2+combovalue()*2)
+									c.hit.hp=c.hit.hp-(2+combovalue()*2-c.honey)
+									if c.hit.hp>c.hit.maxhp then c.hit.hp=c.hit.maxhp end 
 									clearcards()
 							end
 					end
@@ -465,7 +507,7 @@ function cursorctrl()
 			clearcards()
 			c.state='card'
 	end
-	if #cards>7 and c.state~='Attack' and c.state~='hit' and c.state~='waitsfx' then
+	if (#cards>7 or cam.i>1) and c.state~='Attack' and c.state~='hit' and c.state~='waitsfx' then
 			rect(0,136-32,12,32,1)
 			rect(240-27-12,136-32,12,32,1)
 			if cam.i>1 then spr(69,2,136-32+12,0) end
