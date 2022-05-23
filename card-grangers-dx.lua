@@ -41,6 +41,8 @@ function renemy(place)
 		if place==7 then out.x=80 end
 		if place==8 then out.x=80+40 end
 		if place==9 then out.x=80+40+40 end
+		out.honey=0
+		out.spike=0
 		return out		 
 end
 
@@ -102,6 +104,12 @@ function TIC()
 											ins(c.spikemem,{ei,1})
 											::skip::
 											top=string.format('You now take %dx damage!',c.spike+1)
+											turn.anim=140		
+											turn.pending=nil
+									elseif enemycard(turn.id)=='Sleep' then
+											c.sleep=c.sleep or 0
+											c.sleep=c.sleep+1
+											top=string.format('You are now asleep!',c.spike+1)
 											turn.anim=140		
 											turn.pending=nil
 									else
@@ -200,6 +208,7 @@ encounter=1
 function nextturn()
 		if turn==c then
 				--turn=enemies[1]
+				if c.sleep then c.sleep=c.sleep-1; if c.sleep<=0 then c.sleep=nil end end
 				turn=enemies
 				for i,e in ipairs(enemies) do
 						if math.random(1,5)==1 then
@@ -375,7 +384,7 @@ function cursorctrl()
 					local v=cards[i]
 					if not v then break end
 					local x=(i-cam.i)*27+12
-					if coll(c.x,c.y,1,1, x,136-32,27,32) then
+					if (not c.sleep) and coll(c.x,c.y,1,1, x,136-32,27,32) then
 							--hover
 								
 							rectb(x,136-32,27,32,t%16)
@@ -396,6 +405,11 @@ function cursorctrl()
 					if v=="Spike" then spr(193,x+5,136-32+4,0,1,0,0,2,2) end
 					if v=="Sleep" then spr(195,x+5,136-32+4,0,1,0,0,2,2) end
 					if v=="Clone" then spr(225,x+5,136-32+4,0,1,0,0,2,2) end
+					if c.sleep then
+							for i=1,7 do
+							line(x,136-32+i,x+27-1,136-32+32-8+i,6)
+							end
+					end
 			end
 	end
 	if c.state=="hit" then	
@@ -484,7 +498,8 @@ function cursorctrl()
 			for i,e in ipairs(enemies) do
 					if coll(c.x,c.y,1,1, e.x,e.y,32,32) then
 							--hover
-							rect(c.x+9,c.y,string.len(e.id)*4,7,1)
+							local w=print(e.id,0,-6,15,false,1,true)
+							rect(c.x+9,c.y,w+1,7,1)
 							print(e.id,c.x+9+1,c.y+1,15,false,1,true)
 							if btn(4) or left then
 									if c.combo then top=string.format('Hit %s for %d+%d HP.',e.id,2-c.honey,combovalue()*2)
@@ -546,7 +561,7 @@ function cursorctrl()
 					--if #cards>7 then x=x+12 end
 					local y=136-32
 					if c.combo then for j,w in ipairs(c.combo) do if w[2]==i then y=y-8; rect(x,y,27,32,15); break end end end
-					if coll(c.x,c.y,1,1, x,y,27,32) then
+					if (not c.sleep) and coll(c.x,c.y,1,1, x,y,27,32) then
 							--hover
 								
 							if btn(4) or left then 
@@ -592,6 +607,11 @@ function cursorctrl()
 							if v=="Spike" then spr(193,x+5,y+4,0,1,0,0,2,2) end
 							if v=="Sleep" then spr(195,x+5,y+4,0,1,0,0,2,2) end
 							if v=="Clone" then spr(225,x+5,y+4,0,1,0,0,2,2) end
+							if c.sleep then
+									for i=1,7 do
+									line(x,y+i,x+27-1,y+32-8+i,6)
+									end
+							end
 					end
 			end
 	end
