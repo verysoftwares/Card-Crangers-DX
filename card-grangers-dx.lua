@@ -122,7 +122,7 @@ function TIC()
 							end
 					end
 			elseif turn.state=="card" then
-					if c.defending then
+					if c.defending and not c.sleep then
 							if #enemies>1 then
 							top='Enemies were blocked.'
 							else
@@ -539,6 +539,9 @@ function cursorctrl()
 	end
 	if c.state=="idle" then
 			top="Select an action."
+	end
+	if c.sleep then
+			top='You are asleep.'
 	end
 	if c.state=='Draft' then
 			c.draft=1+combovalue()
