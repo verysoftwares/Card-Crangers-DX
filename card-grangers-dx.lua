@@ -26,6 +26,7 @@ defeated=0
 function renemy(place)
 		local out = {}
 		local e = allenemies[math.random(#allenemies)]
+		for i,f in ipairs(enemies) do if f.id==e then return renemy(place) end end
 		out.id=e
 		if out.id=="Rocopter" then out.sprite=76; out.hp=10-3; out.maxhp=10-3; out.atk=1 end
 		if out.id=="Cactic" then out.sprite=140; out.hp=16-3; out.maxhp=16-3; out.atk=2 end
@@ -46,7 +47,9 @@ function renemy(place)
 		return out		 
 end
 
-enemies={renemy(4),renemy(5)}
+enemies={}
+ins(enemies,renemy(4))
+ins(enemies,renemy(5))
 
 music(0)
 
@@ -219,9 +222,14 @@ function nextturn()
 						encounter=encounter+1
 						turn=c
 						if encounter==2 then
-								enemies={renemy(1),renemy(2),renemy(3)}
+								ins(enemies,renemy(1))
+								ins(enemies,renemy(2))
+								ins(enemies,renemy(3))
 						else
-						  enemies={renemy(6),renemy(7),renemy(8),renemy(9)}
+						  ins(enemies,renemy(6))
+								ins(enemies,renemy(7))
+								ins(enemies,renemy(8))
+								ins(enemies,renemy(9))
 						end
 						turn.state="card"
 						return
