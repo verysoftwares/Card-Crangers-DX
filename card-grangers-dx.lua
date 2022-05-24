@@ -673,7 +673,11 @@ function cursorctrl()
 							print(e.id,c.x+9+1,c.y+1,15,false,1,true)
 							if btn(4) or left then
 									e.sleep=e.sleep or 0
+									if not c.combo then
+									top=string.format('%s is asleep for %d turn.',e.id,e.sleep+1+combovalue())
+									else
 									top=string.format('%s is asleep for %d turns.',e.id,e.sleep+1+combovalue())
+									end
 									e.sleep=e.sleep+1+combovalue()
 									sfx(3,12*3+5,80,2)
 									c.state="hit"
