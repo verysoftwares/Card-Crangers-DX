@@ -136,7 +136,7 @@ function update()
 							turn.hit=c
 							local dmg=0
 							for i,e in ipairs(enemies) do
-									if not e.pending then
+									if not e.pending and not e.sleep then
 									dmg=dmg+(e.atk-e.honey)*(turn.hit.spike+1)
 									end
 							end
@@ -169,7 +169,9 @@ function update()
 			end
 			
 			for i,e in ipairs(enemies) do
-					spr(e.sprite-t%60//50*4,e.x,e.y,0,1,0,0,4,4)
+					local sp=e.sprite-t%60//50*4
+					if e.sleep then sp=e.sprite end
+					spr(sp,e.x,e.y,0,1,0,0,4,4)
 			end
 			for i,e in ipairs(enemies) do	
 			print(string.format("%d/%d",e.hp,e.maxhp),e.x+4,e.y+32+2,1,false,1,true)
@@ -246,7 +248,7 @@ function nextturn()
 				if c.sleep then c.sleep=c.sleep-1; if c.sleep<=0 then c.sleep=nil end end
 				turn=enemies
 				for i,e in ipairs(enemies) do
-						if math.random(1,5)==1 then
+						if (not e.sleep) and math.random(1,5)==1 then
 								e.pending=true
 						end
 				end
@@ -295,7 +297,9 @@ function nextturn()
 				end
 		end
 		for i,e in ipairs(enemies) do
-				spr(e.sprite-t%60//50*4,e.x,e.y,0,1,0,0,4,4)
+				local sp=e.sprite-t%60//50*4
+				if e.sleep then sp=e.sprite end
+				spr(sp,e.x,e.y,0,1,0,0,4,4)
 		end
 		for i,e in ipairs(enemies) do	
 		print(string.format("%d/%d",e.hp,e.maxhp),e.x+4,e.y+32+2,1,false,1,true)
@@ -465,10 +469,14 @@ function cursorctrl()
 			for i,e in ipairs(enemies) do
 					if c.hit==e or c.hit==enemies then
 							if t%12<6 then 	
-									spr(e.sprite-t%60//50*4,e.x,e.y,0,1,0,0,4,4)
+									local sp=e.sprite-t%60//50*4
+									if e.sleep then sp=e.sprite end
+									spr(sp,e.x,e.y,0,1,0,0,4,4)
 							end
 					else
-							spr(e.sprite-t%60//50*4,e.x,e.y,0,1,0,0,4,4)
+							local sp=e.sprite-t%60//50*4
+							if e.sleep then sp=e.sprite end
+							spr(sp,e.x,e.y,0,1,0,0,4,4)
 					end
 			end
 			c.anim=c.anim-1
@@ -487,13 +495,23 @@ function cursorctrl()
 					end
 			end
 			if not honeyrem and not spikerem then
-			c.state="idle"; nextturn(); return
+			c.state="idle"; nextturn(); 
+			for i,e in ipairs(enemies) do 
+					if not e.justslept then
+					if e.sleep then e.sleep=e.sleep-1; if e.sleep<=0 then e.sleep=nil end end 
+					else
+					e.justslept=false
+					end
+			end
+			return
 			end
 			end
 	else
 			if c.state~="card" then
 					for i,e in ipairs(enemies) do
-							spr(e.sprite-t%60//50*4,e.x,e.y,0,1,0,0,4,4)
+							local sp=e.sprite-t%60//50*4
+							if e.sleep then sp=e.sprite end
+							spr(sp,e.x,e.y,0,1,0,0,4,4)
 					end
 					for i,e in ipairs(enemies) do	
 					print(string.format("%d/%d",e.hp,e.maxhp),e.x+4,e.y+32+2,1,false,1,true)
@@ -628,6 +646,41 @@ function cursorctrl()
 									c.hit=e
 									c.anim=120
 									clearcards()
+							end
+					end
+			end
+			end
+	end
+	if c.state=='Sleep' then
+			top = "Sleep whom?"
+			if #enemies==1 then
+					local e=enemies[1]
+					e.sleep=e.sleep or 0
+					top=string.format('%s is asleep for %d turns.',e.id,e.sleep+1+combovalue())
+					e.sleep=e.sleep+1+combovalue()
+					sfx(3,12*3+5,80,2)
+					c.state="hit"
+					c.hit=e
+					c.anim=120
+					clearcards()
+					e.justslept=true
+			else
+			for i,e in ipairs(enemies) do
+					if coll(c.x,c.y,1,1, e.x,e.y,32,32) then
+							--hover
+							local w=print(e.id,0,-6,15,false,1,true)
+							rect(c.x+9,c.y,w+1,7,1)
+							print(e.id,c.x+9+1,c.y+1,15,false,1,true)
+							if btn(4) or left then
+									e.sleep=e.sleep or 0
+									top=string.format('%s is asleep for %d turns.',e.id,e.sleep+1+combovalue())
+									e.sleep=e.sleep+1+combovalue()
+									sfx(3,12*3+5,80,2)
+									c.state="hit"
+									c.hit=e
+									c.anim=120
+									clearcards()
+									e.justslept=true
 							end
 					end
 			end
