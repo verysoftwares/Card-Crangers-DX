@@ -137,7 +137,7 @@ function update()
 							local dmg=0
 							for i,e in ipairs(enemies) do
 									if not e.pending then
-									dmg=dmg+e.atk*(turn.hit.spike+1)
+									dmg=dmg+(e.atk-e.honey)*(turn.hit.spike+1)
 									end
 							end
 							if #enemies>1 then
@@ -559,6 +559,39 @@ function cursorctrl()
 									c.hit=e
 									c.hit.hp=c.hit.hp-(2+combovalue()*2-c.honey)
 									if c.hit.hp>c.hit.maxhp then c.hit.hp=c.hit.maxhp end 
+									clearcards()
+							end
+					end
+			end
+			end
+	end
+	if c.state=='Honey' then
+			top = "Honey whom?"
+			if #enemies==1 then
+					local e=enemies[1]
+					e.honey=e.honey+1
+					if c.combo then top=string.format('%s\'s attack is weakened by %d+%d.',e.id,e.honey,combovalue())
+					else top=string.format('%s\'s attack is weakened by %d.',e.id,e.honey) end
+					if c.combo then e.honey=e.honey+combovalue() end
+					sfx(3,12*3+5,80,2)
+					c.state="hit"
+					c.anim=120
+					clearcards()
+			else
+			for i,e in ipairs(enemies) do
+					if coll(c.x,c.y,1,1, e.x,e.y,32,32) then
+							--hover
+							local w=print(e.id,0,-6,15,false,1,true)
+							rect(c.x+9,c.y,w+1,7,1)
+							print(e.id,c.x+9+1,c.y+1,15,false,1,true)
+							if btn(4) or left then
+									e.honey=e.honey+1
+									if c.combo then top=string.format('%s\'s attack is weakened by %d+%d.',e.id,e.honey,combovalue())
+									else top=string.format('%s\'s attack is weakened by %d.',e.id,e.honey) end
+									if c.combo then e.honey=e.honey+combovalue() end
+									sfx(3,12*3+5,80,2)
+									c.state="hit"
+									c.anim=120
 									clearcards()
 							end
 					end
