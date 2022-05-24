@@ -510,7 +510,7 @@ function cursorctrl()
 			c.state="hit"
 			c.hit=enemies
 			for i,e in ipairs(enemies) do
-					e.hp=e.hp-(1+combovalue()-c.honey)
+					e.hp=e.hp-(1+combovalue()-c.honey)*(e.spike+1)
 					if e.hp>e.maxhp then e.hp=e.maxhp end 
 			end
 			c.anim=100
@@ -534,13 +534,13 @@ function cursorctrl()
 			top = "Attack whom?"
 			if #enemies==1 then
 					local e=enemies[1]
-					if c.combo then top=string.format('Hit %s for %d+%d HP.',e.id,2-c.honey,combovalue()*2)
-					else top=string.format("Hit %s for %d HP.",e.id,2-c.honey) end
+					if c.combo then top=string.format('Hit %s for %d+%d HP.',e.id,(2-c.honey)*(e.spike+1),combovalue()*2)
+					else top=string.format("Hit %s for %d HP.",e.id,(2-c.honey)*(e.spike+1)) end
 					sfx(3,12*3+5,80,2)
 					c.state="hit"
 					c.anim=90
 					c.hit=enemies[1]
-					c.hit.hp=c.hit.hp-(2+combovalue()*2-c.honey)
+					c.hit.hp=c.hit.hp-(2+combovalue()*2-c.honey)*(e.spike+1)
 					if c.hit.hp>c.hit.maxhp then c.hit.hp=c.hit.maxhp end 
 					clearcards()
 			else
@@ -551,13 +551,13 @@ function cursorctrl()
 							rect(c.x+9,c.y,w+1,7,1)
 							print(e.id,c.x+9+1,c.y+1,15,false,1,true)
 							if btn(4) or left then
-									if c.combo then top=string.format('Hit %s for %d+%d HP.',e.id,2-c.honey,combovalue()*2)
-									else top=string.format("Hit %s for %d HP.",e.id,2-c.honey) end
+									if c.combo then top=string.format('Hit %s for %d+%d HP.',e.id,(2-c.honey)*(e.spike+1),combovalue()*2)
+									else top=string.format("Hit %s for %d HP.",e.id,(2-c.honey)*(e.spike+1)) end
 									sfx(3,12*3+5,80,2)
 									c.state="hit"
 									c.anim=90
 									c.hit=e
-									c.hit.hp=c.hit.hp-(2+combovalue()*2-c.honey)
+									c.hit.hp=c.hit.hp-(2+combovalue()*2-c.honey)*(e.spike+1)
 									if c.hit.hp>c.hit.maxhp then c.hit.hp=c.hit.maxhp end 
 									clearcards()
 							end
@@ -575,6 +575,7 @@ function cursorctrl()
 					if c.combo then e.honey=e.honey+combovalue() end
 					sfx(3,12*3+5,80,2)
 					c.state="hit"
+					c.hit=e
 					c.anim=120
 					clearcards()
 			else
@@ -591,6 +592,40 @@ function cursorctrl()
 									if c.combo then e.honey=e.honey+combovalue() end
 									sfx(3,12*3+5,80,2)
 									c.state="hit"
+									c.hit=e
+									c.anim=120
+									clearcards()
+							end
+					end
+			end
+			end
+	end
+	if c.state=='Spike' then
+			top = "Spike whom?"
+			if #enemies==1 then
+					local e=enemies[1]
+					e.spike=e.spike+1
+					if c.combo then e.spike=e.spike+combovalue() end
+					top=string.format('%s now takes %dx damage!',e.id,e.spike+1)
+					sfx(3,12*3+5,80,2)
+					c.state="hit"
+					c.hit=e
+					c.anim=120
+					clearcards()
+			else
+			for i,e in ipairs(enemies) do
+					if coll(c.x,c.y,1,1, e.x,e.y,32,32) then
+							--hover
+							local w=print(e.id,0,-6,15,false,1,true)
+							rect(c.x+9,c.y,w+1,7,1)
+							print(e.id,c.x+9+1,c.y+1,15,false,1,true)
+							if btn(4) or left then
+									e.spike=e.spike+1
+									if c.combo then e.spike=e.spike+combovalue() end
+									top=string.format('%s now takes %dx damage!',e.id,e.spike+1)
+									sfx(3,12*3+5,80,2)
+									c.state="hit"
+									c.hit=e
 									c.anim=120
 									clearcards()
 							end
