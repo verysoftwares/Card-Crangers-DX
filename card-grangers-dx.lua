@@ -169,12 +169,10 @@ function update()
 			end
 			
 			for i,e in ipairs(enemies) do
-					local sp=e.sprite-t%60//50*4
-					if e.sleep then sp=e.sprite end
-					spr(sp,e.x,e.y,0,1,0,0,4,4)
+					enemydraw(e)
 			end
 			for i,e in ipairs(enemies) do	
-			print(string.format("%d/%d",e.hp,e.maxhp),e.x+4,e.y+32+2,1,false,1,true)
+			if not e.gone then print(string.format("%d/%d",e.hp,e.maxhp),e.x+4,e.y+32+2,1,false,1,true) end
 			end
 	end
 	
@@ -297,12 +295,10 @@ function nextturn()
 				end
 		end
 		for i,e in ipairs(enemies) do
-				local sp=e.sprite-t%60//50*4
-				if e.sleep then sp=e.sprite end
-				spr(sp,e.x,e.y,0,1,0,0,4,4)
+				enemydraw(e)
 		end
 		for i,e in ipairs(enemies) do	
-		print(string.format("%d/%d",e.hp,e.maxhp),e.x+4,e.y+32+2,1,false,1,true)
+		if not e.gone then print(string.format("%d/%d",e.hp,e.maxhp),e.x+4,e.y+32+2,1,false,1,true) end
 		end
 end
 
@@ -343,6 +339,14 @@ function combovalue()
 				out=out+tonumber(sub(w[1],6,6))
 		end
 		return out
+end
+
+function enemydraw(e)
+		if not e.gone then
+		local sp=e.sprite-t%60//50*4
+		if e.sleep then sp=e.sprite end
+		spr(sp,e.x,e.y,0,1,0,0,4,4)
+		end
 end
 
 cam={i=1}
@@ -469,32 +473,40 @@ function cursorctrl()
 			for i,e in ipairs(enemies) do
 					if c.hit==e or c.hit==enemies then
 							if t%12<6 then 	
-									local sp=e.sprite-t%60//50*4
-									if e.sleep then sp=e.sprite end
-									spr(sp,e.x,e.y,0,1,0,0,4,4)
+									enemydraw(e)
 							end
 					else
-							local sp=e.sprite-t%60//50*4
-							if e.sleep then sp=e.sprite end
-							spr(sp,e.x,e.y,0,1,0,0,4,4)
+							enemydraw(e)
 					end
 			end
 			c.anim=c.anim-1
 			if c.anim==0 then 
 			local honeyrem=false
 			local spikerem=false
+			local enemyloot=false
 			for i=#enemies,1,-1 do
 					local e=enemies[i]
-					if e.hp<=0 then table.remove(enemies,i); defeated=defeated+1 
+					if e.hp<=0 then if not e.loot then
+					c.anim=140; c.hit=nil;
+					top=string.format('%s dropped loot: %s!',e.id,enemycard(e.id))
+					ins(cards,enemycard(e.id))
+					enemyloot=true
+					e.loot=true
+					e.gone=true
+					defeated=defeated+1
+					break
+					else
 					if c.honeymem then for j,d in ipairs(c.honeymem) do
-							if d[1]==i then c.honey=c.honey-d[2]; top=string.format('Player is free from %s\'s Honey!',e.id); c.anim=140; c.hit=nil; honeyrem=true break end
+							if d[1]==i then c.honey=c.honey-d[2]; top=string.format('You are free from %s\'s Honey!',e.id); c.anim=140; c.hit=nil; honeyrem=true break end
 					end end
 					if c.spikemem then for j,d in ipairs(c.spikemem) do
-							if d[1]==i then c.spike=c.spike-d[2]; top=string.format('Player is free from %s\'s Spike!',e.id); c.anim=140; c.hit=nil; spikerem=true break end
+							if d[1]==i then c.spike=c.spike-d[2]; top=string.format('You are free from %s\'s Spike!',e.id); c.anim=140; c.hit=nil; spikerem=true break end
 					end end
+					end 
+					table.remove(enemies,i)
 					end
 			end
-			if not honeyrem and not spikerem then
+			if not honeyrem and not spikerem and not enemyloot then
 			c.state="idle"; nextturn(); 
 			for i,e in ipairs(enemies) do 
 					if not e.justslept then
@@ -509,9 +521,7 @@ function cursorctrl()
 	else
 			if c.state~="card" then
 					for i,e in ipairs(enemies) do
-							local sp=e.sprite-t%60//50*4
-							if e.sleep then sp=e.sprite end
-							spr(sp,e.x,e.y,0,1,0,0,4,4)
+							enemydraw(e)
 					end
 					for i,e in ipairs(enemies) do	
 					print(string.format("%d/%d",e.hp,e.maxhp),e.x+4,e.y+32+2,1,false,1,true)
