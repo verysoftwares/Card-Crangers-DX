@@ -331,6 +331,7 @@ function cursorctrl()
 	end
 
 	if c.state=='waitsfx' then
+			top=''
 			c.draftt=c.draftt-1
 			if c.draftt<=0 then
 					c.draftt=nil
@@ -339,7 +340,11 @@ function cursorctrl()
 	end
 
 	if c.state=="card" then
+			if c.draft and c.maxdraft>1 then
+			top = string.format("Pick 1, sacrifice 2. (%d/%d)",c.maxdraft-c.draft+1,c.maxdraft)
+			else
 			top = "Pick 1, sacrifice 2."
+			end
 			if not deckcards then deckcards={rcard(),rcard(),rcard()} end
 
 			for i,v in ipairs(deckcards) do
@@ -362,7 +367,7 @@ function cursorctrl()
 							if btnp(4) or leftclick then
 									table.insert(cards,v)
 									drafted=drafted+1
-									if c.draft then c.draft=c.draft-1; if c.draft<=0 then c.draft=nil; c.state='waitsfx'; c.draftt=30 end
+									if c.draft then c.draft=c.draft-1; if c.draft<=0 then c.draft=nil; c.maxdraft=nil; c.state='waitsfx'; c.draftt=30 end
 									elseif not c.draft then c.state="idle" end
 									deckcards=nil
 									c.combo=nil
@@ -545,6 +550,7 @@ function cursorctrl()
 	end
 	if c.state=='Draft' then
 			c.draft=1+combovalue()
+			c.maxdraft=c.draft
 			clearcards()
 			c.state='card'
 	end
