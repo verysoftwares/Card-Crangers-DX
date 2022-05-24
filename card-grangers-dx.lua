@@ -1,6 +1,6 @@
--- title:  game title
--- author: game developer
--- desc:   short description
+-- title:  Card Grangers DX
+-- author: verysoftwares.itch.io
+-- desc:   minimalist card battles
 -- script: lua
 
 sub=string.sub
@@ -252,20 +252,51 @@ function update()
 end
 
 animcards={}
+titlecards={'Play','Option','Creds'}
 
 function titlescr()
 		cls(12)
+		
+		local mx,my,left=mouse()
+		c.x=mx; c.y=my
+
+		poke(0x3FFB,0) -- hide system cursor
+		
+		bg_t=bg_t or 0
+		rect(0,8,240,8,6+math.floor(((bg_t)*0.15+2)%3)*3)
+		rect(0,16,240,8,6+math.floor(((bg_t)*0.15+1)%3)*3)
+		rect(0,24,240,8,6+math.floor((bg_t*0.15)%3)*3)
+		rect(0,72+24,240,8,6+math.floor(((bg_t)*0.15+2)%3)*3)
+		rect(0,72+16,240,8,6+math.floor(((bg_t)*0.15+1)%3)*3)
+		rect(0,72+8,240,8,6+math.floor((bg_t*0.15)%3)*3)
+		rect(0,24+8,8,72-24,6+math.floor((bg_t*0.15)%3)*3)
+		rect(8,24+8,8,72-24,6+math.floor(((bg_t)*0.15+1)%3)*3)
+		rect(16,24+8,8,72-24,6+math.floor(((bg_t)*0.15+2)%3)*3)
+		rect(240-8-0,24+8,8,72-24,6+math.floor((bg_t*0.15)%3)*3)
+		rect(240-8-8,24+8,8,72-24,6+math.floor(((bg_t)*0.15+1)%3)*3)
+		rect(240-8-16,24+8,8,72-24,6+math.floor(((bg_t)*0.15+2)%3)*3)
+		
 		if #animcards==0 then
-				for i=1,6 do
-						animcards[i]={x=(i-1)*27*2,y=0+32,id=rcard2()}
+				for i=1,8 do
+						animcards[i]={x=-27*2+(i-1)*27*2,y=0+32,id=rcard2()}
 				end
-				for i=7,12 do
-						animcards[i]={x=(i-7)*27*2+27,y=0+32+32,id=rcard2()}
+				for i=9,9+7 do
+						animcards[i]={x=-27*2+(i-10)*27*2+27,y=0+32+32,id=rcard2()}
+				end
+				for i=9+7+1,9+7+1+7 do
+						animcards[i]={x=-27*2+(i-(9+7+1)-1)*27*2,y=32+32+32,id=rcard2()}
+				end
+				for i=9+7+1+7+1,9+7+1+7+1+7 do
+						animcards[i]={x=-27*2+(i-(9+7+1+7+1)-1)*27*2+27,y=32+32+32+32,id=rcard2()}
 				end
 		end
 		for i,d in ipairs(animcards) do
 				rect(d.x,d.y,27,32,15)
 				rectb(d.x,d.y,27,32,1)
+				if d.y>=136 then
+				d.id=allcards[math.random(#allcards)]
+				d.x=d.x+27*6-27+3; d.y=d.y-32*5-32
+				end
 				if d.id=="Attack" then spr(33,d.x+5,d.y+4,0,1,0,0,2,2) end
 				if d.id=="Defend" then spr(35,d.x+5,d.y+4,0,1,0,0,2,2) end
     if d.id=="Spell" then spr(65,d.x+5,d.y+4,0,1,0,0,2,2) end
@@ -278,10 +309,46 @@ function titlescr()
 				if d.id=="Spike" then spr(193,d.x+5,d.y+4,0,1,0,0,2,2) end
 				if d.id=="Sleep" then spr(195,d.x+5,d.y+4,0,1,0,0,2,2) end
 				if d.id=="Clone" then spr(225,d.x+5,d.y+4,0,1,0,0,2,2) end
+				d.x=d.x-1; d.y=d.y+1
 		end
+		
+		rect(0,136-32,240,32,15)
+
+		for i,l in ipairs(titlecards) do
+				local x=(i-1)*27+12
+				local y=136-32
+				rect(x,y,27,32,15)
+				if coll(c.x,c.y,1,1, x,y,27,32) then
+				rectb(x,y,27,32,t%16)
+				else
+				rectb(x,y,27,32,1)
+				end
+				print(l,x+2,y+14+8,1,false,1,true)
+		end
+		
+		print('Card',240/2-60-30-1,30,1,false,5,false)
+		print('Card',240/2-60-30+1,30,4,false,5,false)
+		print('Card',240/2-60-30,30-1,1,false,5,false)
+		print('Card',240/2-60-30,30+1,4,false,5,false)
+		print('Card',240/2-60-30,30,4,false,5,false)
+		print('Grangers',240/2-60+40-30-1,30+30,1,false,3,false)
+		print('Grangers',240/2-60+40-30+1,30+30,4,false,3,false)
+		print('Grangers',240/2-60+40-30,30+30-1,1,false,3,false)
+		print('Grangers',240/2-60+40-30,30+30+1,4,false,3,false)
+		print('Grangers',240/2-60+40-30,30+30,4,false,3,false)
+		print('Deluxe',240/2-60+40-30-10-1,30+30+20,2,false,2,false)
+		print('Deluxe',240/2-60+40-30-10+1,30+30+20,2,false,2,false)
+		print('Deluxe',240/2-60+40-30-10,30+30+20-1,2,false,2,false)
+		print('Deluxe',240/2-60+40-30-10,30+30+20+1,2,false,2,false)
+		print('Deluxe',240/2-60+40-30-10,30+30+20,1,false,2,false)
+		
+		if btn(4) or left then c.sprite=37 else c.sprite=5 end
+		spr(c.sprite,c.x,c.y,4,1,0,0,2,2)
+
+		t=t+1
 end
 
-TIC=update
+TIC=titlescr
 
 function enemycard(id)
 		if id=='Rocopter' then return 'Sleep' end
