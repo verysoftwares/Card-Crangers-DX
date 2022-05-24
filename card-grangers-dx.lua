@@ -14,7 +14,7 @@ c.y=24
 c.sprite=5
 turn=c
 
-cards={"Attack","Defend","Spell","Item",'Honey','Spike','Sleep','Clone'}
+cards={"Attack","Defend","Spell","Item"}--'Honey','Spike','Sleep','Clone'
 
 top=""
 
@@ -44,12 +44,17 @@ function renemy(place)
 		if place==9 then out.x=80+40+40 end
 		out.honey=0
 		out.spike=0
+		out.origi=#enemies+1
 		return out		 
 end
 
 enemies={}
+--ins(enemies,renemy(1))
+--ins(enemies,renemy(3))
+--enemies[#enemies].origi=3
 ins(enemies,renemy(4))
 ins(enemies,renemy(5))
+maxnmy=2
 
 music(0)
 
@@ -115,6 +120,51 @@ function update()
 											top=string.format('You are now asleep!',c.spike+1)
 											turn.anim=140		
 											turn.pending=nil
+									elseif enemycard(turn.id)=='Clone' then
+											if #enemies>1 and #enemies<4 then
+											local cloned=enemies[math.random(#enemies)]
+											while cloned==turn do cloned=enemies[math.random(#enemies)] end
+											local out={}
+											for k,v in pairs(cloned) do
+													out[k]=v
+											end
+											local empty
+											for d=1,#enemies do
+													if enemies[d].origi~=d then empty=d; break end
+											end
+
+											if empty then ins(enemies,empty,out); out.origi=empty
+											else ins(enemies,out) end
+											if empty and #enemies<=maxnmy then 
+											if #enemies==3 then out.x=80-40+20+(empty-1)*40 end
+											if #enemies==4 then out.x=80-40+(empty-1)*40 end
+											end
+											top=string.format('Cloned %s.',cloned.id)
+											turn.anim=140		
+											turn.pending=nil
+
+											if #enemies>maxnmy then
+													if maxnmy==2 then
+															enemies[1].x=80-40+20
+															enemies[2].x=80+20
+															enemies[3].x=80+40+20
+													elseif maxnmy==3 then
+															enemies[1].x=80-40
+															enemies[2].x=80
+															enemies[3].x=80+40
+															enemies[4].x=80+40+40
+													end
+													maxnmy=#enemies
+											end
+											elseif #enemies==1 then
+											top='Nobody left to clone!'
+											turn.anim=140		
+											turn.pending=nil
+											elseif #enemies==4 then
+											top='Enemy party is already full!'
+											turn.anim=140		
+											turn.pending=nil
+											end
 									else
 											turn.pending=nil
 											nextturn()
@@ -149,6 +199,7 @@ function update()
 							turn.state="hit"
 							turn.anim=100
 							turn.hit.hp=turn.hit.hp-dmg
+							if turn.hit.hp>turn.hit.maxhp then turn.hit.hp=turn.hit.maxhp end
 					end
 					--[[
 					if c.defending then
@@ -257,11 +308,13 @@ function nextturn()
 								ins(enemies,renemy(1))
 								ins(enemies,renemy(2))
 								ins(enemies,renemy(3))
+								maxnmy=3
 						else
 						  ins(enemies,renemy(6))
 								ins(enemies,renemy(7))
 								ins(enemies,renemy(8))
 								ins(enemies,renemy(9))
+								maxnmy=4
 						end
 						turn.state="card"
 						return
@@ -710,6 +763,64 @@ function cursorctrl()
 			c.anim=100
 			clearcards()
 	end
+	if c.state=='Clone' then
+			top='Clone which card?'
+			for i=cam.i,cam.i+6 do
+					local v=cards[i]
+					if not v then break end
+					local x=(i-cam.i)*27+12
+					--if #cards>7 then x=x+12 end
+					local y=136-32
+					--if c.combo then for j,w in ipairs(c.combo) do if w[2]==i then y=y-8; rect(x,y,27,32,15); break end end end
+					if (not c.sleep) and coll(c.x,c.y,1,1, x,y,27,32) then
+							--hover
+								
+							if btn(4) or leftclick then 
+									for j=1,1+combovalue() do
+											ins(cards,v)
+									end
+									if not c.combo then
+									top=string.format('Cloned %s.',v)
+									else
+									top=string.format('Cloned %s %d times.',v,1+combovalue())
+									end
+									c.state='hit'
+									c.anim=120
+									clearcards()
+							end
+
+							rectb(x,y,27,32,t%16)
+							print(v,x+2,y+14+8,t%16,false,1,true)
+							if v=="Attack" then spr(33,x+5,y+4,0,1,0,0,2,2) end
+							if v=="Defend" then spr(35,x+5,y+4,0,1,0,0,2,2) end
+							if v=="Spell" then spr(65,x+5,y+4,0,1,0,0,2,2) end
+							if v=="Item" then spr(67,x+5,y+4,0,1,0,0,2,2) end
+							if v=="Plus 1" then spr(97,x+5,y+4,0,1,0,0,2,2) end
+							if v=="Plus 2" then spr(99,x+5,y+4,0,1,0,0,2,2) end
+							if v=="Plus 3" then spr(129,x+5,y+4,0,1,0,0,2,2) end
+							if v=="Draft" then spr(131,x+5,y+4,0,1,0,0,2,2) end
+							if v=="Honey" then spr(163,x+5,y+4,0,1,0,0,2,2) end
+							if v=="Spike" then spr(193,x+5,y+4,0,1,0,0,2,2) end
+							if v=="Sleep" then spr(195,x+5,y+4,0,1,0,0,2,2) end
+							if v=="Clone" then spr(225,x+5,y+4,0,1,0,0,2,2) end
+					else
+					rectb(x,y,27,32,1)
+					print(v,x+2,y+14+8,1,false,1,true)
+					if v=="Attack" then spr(33,x+5,y+4,0,1,0,0,2,2) end
+					if v=="Defend" then spr(35,x+5,y+4,0,1,0,0,2,2) end
+					if v=="Spell" then spr(65,x+5,y+4,0,1,0,0,2,2) end
+					if v=="Item" then spr(67,x+5,y+4,0,1,0,0,2,2) end
+					if v=="Plus 1" then spr(97,x+5,y+4,0,1,0,0,2,2) end
+					if v=="Plus 2" then spr(99,x+5,y+4,0,1,0,0,2,2) end
+					if v=="Plus 3" then spr(129,x+5,y+4,0,1,0,0,2,2) end
+					if v=="Draft" then spr(131,x+5,y+4,0,1,0,0,2,2) end
+					if v=="Honey" then spr(163,x+5,y+4,0,1,0,0,2,2) end
+					if v=="Spike" then spr(193,x+5,y+4,0,1,0,0,2,2) end
+					if v=="Sleep" then spr(195,x+5,y+4,0,1,0,0,2,2) end
+					if v=="Clone" then spr(225,x+5,y+4,0,1,0,0,2,2) end
+					end
+			end
+	end
 	if sub(c.state,1,4)=='Plus' then
 			top='Select a combo card.'
 	end
@@ -950,8 +1061,8 @@ end
 -- 154:bbbbb300bbbbb300bbbbb300b2bb3300b2bb3300b2bb330bb2bb33bbbbbb33bb
 -- 155:0bbbb3000bbbb3000bbb33000bbb3300bbbb3300bbbb3300bbbb3300bbbb3000
 -- 156:000bbbb3000bbbb3000bbbb3000bbbb3000bbbbb000bbbbb0000bbbb0000bbbb
--- 157:00bbbbbb00bbbbbb00bbbbbb00bb2bbb00bb2bbb30bb2bbbb3bb2bbbbbbbbbbb
--- 158:bbbbb300bbbbb300bbbbb300b2bb3300b2bb3300b2bb3300b2bb3300bbbb3300
+-- 157:00bbbbbb00bbbbbb00bbbbbb00bbbbbb00b222bb30bb2bbbb3bbbbbbbbbbbbbb
+-- 158:bbbbb300bbbbb300bbbbb300bbbb3300222b3300b2bb3300bbbb3300bbbb3300
 -- 159:000000000000000000bbb00000bbbb0000bbbb000bbbbb000bbbb3000bbbb300
 -- 161:00000000000000000000000a000000aa00000000000aa00000aa0a000aa00aaa
 -- 162:0000000000000000aaaaa0000000aa00aa000aa00aa000aaaa0000aaa0000aa0
@@ -979,26 +1090,26 @@ end
 -- 194:000000000000000000000000a0000000a00000000a0000000a00000000a00000
 -- 195:00000000000000000aaaaa000a000a000aaa0a0000a00a000a00a0090a000a00
 -- 196:0000000000000000000000000000000000000000000000009900000009000000
--- 200:eeeee000e000eee0000000ee0000000e000000ee00000ee30000ee33000ee333
--- 201:00000eee0000ee000000e0000000e000eeeee00033333ee0333333ee3333333e
--- 202:eee00000000ea000000aaaa000aaa3a00aaa333a0a3a3a330a33a3330a3a3a33
--- 203:0000000000000000000000000000000000000000a0000000a0aaaaa03aa333aa
--- 204:eeeee000e000eee0000000ee0000000e000000ee00000ee30000ee33000ee633
--- 205:00000eee0000ee000000e0000000e000eeeee00033333ee0333333ee3336633e
--- 206:eee0000a000e0aaa0000aa33000aa333000a3333000aa3a3000a3a33000aa3a3
--- 207:a0000000a00aaaa03aaa333a3a33333aaa33333aa3a3a33aaa3a333aa3a3a33a
+-- 200:eeeee000e000eee0000000ee0000000e000000ee00000ee30000ee33000ee633
+-- 201:00000eee0000ee000000e0000000e000eeeee00033333ee0333333ee3336633e
+-- 202:eee0000a000e0aaa0000aa33000aa333000a3333000aa3a3000a3a33000aa3a3
+-- 203:a0000000a00aaaa03aaa333a3a33333aaa33333aa3a3a33aaa3a333aa3a3a33a
+-- 204:eeeee000e000eee0000000ee0000000e000000ee00000ee30000ee33000ee333
+-- 205:00000eee0000ee000000e0000000e000eeeee00033333ee0333333ee3333333e
+-- 206:eee00000000ea000000aaaa000aaa3a00aaa333a0a3a3a330a33a3330a3a3a33
+-- 207:0000000000000000000000000000000000000000a0000000a0aaaaa03aa333aa
 -- 209:0000a090000a0900000a090000a0900000a09000000990000000099900000000
 -- 210:00a00000000a0000000a00000000a0000000a000009900009900000000000000
 -- 211:0aaaaa0000000009000000090000000000000000000000000000000000000000
 -- 212:90000000000aaa0099000a00000a0000000aaa00000000000000000000000000
--- 216:000e6333000e663300093663000e33660009e333000093330000933300000933
--- 217:333363333336633333663333366333333333333e3333333e33333e9e3339e9e9
--- 218:eaa3a33ae0aa3a3ae0aaa33ae00a33aaeeee33aaeeeeeea3ee333eaae33333ee
--- 219:aa3a333aa3a3a3333a3a333aa3a333aa3333aaa0aaaaa000a000000000000000
--- 220:000e6663000e666600093666000e33660009e333000093330000933300000933
--- 221:336663333666633336663333366333333333333e3333333e33333e9e3339e9e9
--- 222:e00a3a3ae00aa3aae000aa3ae000a33aeeee333aeeeeeea3ee333eaae33333ee
--- 223:3a3a333aa3a333a03a333aa03333aa0033aa0000aaa00000a000000000000000
+-- 216:000e6663000e666600093666000e33660009e333000093330000933300000933
+-- 217:336663333666633336663333366333333333333e3333333e33333e9e3339e9e9
+-- 218:e00a3a3ae00aa3aae000aa3ae000a33aeeee333aeeeeeea3ee333eaae33333ee
+-- 219:3a3a333aa3a333a03a333aa03333aa0033aa0000aaa00000a000000000000000
+-- 220:000e6333000e663300093663000e33660009e333000093330000933300000933
+-- 221:333363333336633333663333366333333333333e3333333e33333e9e3339e9e9
+-- 222:eaa3a33ae0aa3a3ae0aaa33ae00a33aaeeee33aaeeeeeea3ee333eaae33333ee
+-- 223:aa3a333aa3a3a3333a3a333aa3a333aa3333aaa0aaaaa000a000000000000000
 -- 225:0000000000000aaa00000a0000000a0000000a0000000a0000000a0000000a00
 -- 226:00000000aaa00000000000000000000000a000000a0a0000a000a00000a00000
 -- 232:0000009300000009000000000000000000000000000000090000009900000990
