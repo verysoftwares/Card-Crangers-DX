@@ -281,13 +281,13 @@ function titlescr()
 						animcards[i]={x=-27*2+(i-1)*27*2,y=0+32,id=rcard2()}
 				end
 				for i=9,9+7 do
-						animcards[i]={x=-27*2+(i-10)*27*2+27,y=0+32+32,id=rcard2()}
+						animcards[i]={x=-27*2+(i-10)*27*2-27,y=0+32+32,id=rcard2()}
 				end
 				for i=9+7+1,9+7+1+7 do
 						animcards[i]={x=-27*2+(i-(9+7+1)-1)*27*2,y=32+32+32,id=rcard2()}
 				end
 				for i=9+7+1+7+1,9+7+1+7+1+7 do
-						animcards[i]={x=-27*2+(i-(9+7+1+7+1)-1)*27*2+27,y=32+32+32+32,id=rcard2()}
+						animcards[i]={x=-27*2+(i-(9+7+1+7+1)-1)*27*2-27,y=32+32+32+32,id=rcard2()}
 				end
 		end
 		for i,d in ipairs(animcards) do
@@ -295,7 +295,7 @@ function titlescr()
 				rectb(d.x,d.y,27,32,1)
 				if d.y>=136 then
 				d.id=allcards[math.random(#allcards)]
-				d.x=d.x+27*6-27+3; d.y=d.y-32*5-32
+				d.x=d.x+27*6+27+3; d.y=d.y-32*5-32
 				end
 				if d.id=="Attack" then spr(33,d.x+5,d.y+4,0,1,0,0,2,2) end
 				if d.id=="Defend" then spr(35,d.x+5,d.y+4,0,1,0,0,2,2) end
