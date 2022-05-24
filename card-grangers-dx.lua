@@ -53,7 +53,7 @@ ins(enemies,renemy(5))
 
 music(0)
 
-function TIC()
+function update()
 
 	--if btn(0) and c.y>0 then c.y=c.y-1 end
 	--if btn(1) and c.y<136-16 then c.y=c.y+1 end
@@ -200,6 +200,38 @@ function TIC()
 	t=t+1
 end
 
+animcards={}
+
+function titlescr()
+		cls(12)
+		if #animcards==0 then
+				for i=1,6 do
+						animcards[i]={x=(i-1)*27*2,y=0+32,id=rcard2()}
+				end
+				for i=7,12 do
+						animcards[i]={x=(i-7)*27*2+27,y=0+32+32,id=rcard2()}
+				end
+		end
+		for i,d in ipairs(animcards) do
+				rect(d.x,d.y,27,32,15)
+				rectb(d.x,d.y,27,32,1)
+				if d.id=="Attack" then spr(33,d.x+5,d.y+4,0,1,0,0,2,2) end
+				if d.id=="Defend" then spr(35,d.x+5,d.y+4,0,1,0,0,2,2) end
+    if d.id=="Spell" then spr(65,d.x+5,d.y+4,0,1,0,0,2,2) end
+				if d.id=="Item" then spr(67,d.x+5,d.y+4,0,1,0,0,2,2) end
+				if d.id=="Plus 1" then spr(97,d.x+5,d.y+4,0,1,0,0,2,2) end
+				if d.id=="Plus 2" then spr(99,d.x+5,d.y+4,0,1,0,0,2,2) end
+				if d.id=="Plus 3" then spr(129,d.x+5,d.y+4,0,1,0,0,2,2) end
+				if d.id=="Draft" then spr(131,d.x+5,d.y+4,0,1,0,0,2,2) end
+				if d.id=="Honey" then spr(163,d.x+5,d.y+4,0,1,0,0,2,2) end
+				if d.id=="Spike" then spr(193,d.x+5,d.y+4,0,1,0,0,2,2) end
+				if d.id=="Sleep" then spr(195,d.x+5,d.y+4,0,1,0,0,2,2) end
+				if d.id=="Clone" then spr(225,d.x+5,d.y+4,0,1,0,0,2,2) end
+		end
+end
+
+TIC=update
+
 function enemycard(id)
 		if id=='Rocopter' then return 'Sleep' end
 		if id=='Cactic' then return 'Spike' end
@@ -270,9 +302,13 @@ function nextturn()
 		end
 end
 
-allcards={"Attack","Defend","Spell","Item",'Plus 1','Plus 2','Plus 3','Draft'}
+draftcards={"Attack","Defend","Spell","Item",'Plus 1','Plus 2','Plus 3','Draft'}
+allcards={"Attack","Defend","Spell","Item",'Plus 1','Plus 2','Plus 3','Draft','Honey','Spike','Sleep','Clone'}
 
 function rcard()
+		return draftcards[math.random( #draftcards )]
+end
+function rcard2()
 		return allcards[math.random( #allcards )]
 end
 
