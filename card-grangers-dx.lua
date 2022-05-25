@@ -192,12 +192,20 @@ function update()
 									dmg=dmg+(e.atk-e.honey)*(turn.hit.spike+1)
 									end
 							end
+							if dmg>0 then
 							if #enemies>1 then
 							top=string.format('Enemies hit you for %d HP!',dmg)
 							else
 							top=string.format('%s hit you for %d HP!',enemies[1].id,dmg)
 							end
 							sfx(1,12*2,80,2)
+							else
+							if #enemies>1 then
+							top=string.format('Enemies deal no damage.')
+							else
+							top=string.format('%s deals no damage.',enemies[1].id)
+							end
+							end
 							turn.state="hit"
 							turn.anim=100
 							turn.hit.hp=turn.hit.hp-dmg
