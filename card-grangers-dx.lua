@@ -56,10 +56,12 @@ ins(enemies,renemy(4))
 ins(enemies,renemy(5))
 maxnmy=2
 
-music(0)
+--music(0)
 
 function update()
 
+	if peek(0x13FFC)==255 then music(0) end
+	
 	--if btn(0) and c.y>0 then c.y=c.y-1 end
 	--if btn(1) and c.y<136-16 then c.y=c.y+1 end
 	--if btn(2) and c.x>0 then c.x=c.x-1 end
@@ -228,7 +230,7 @@ function update()
 	end
 	
 	local w= print(top,0,1,15)
-	print(top,240/2-w/2,1,1)
+	print(top,240/2-w/2,1,6)
 
 	if c.state~='card' and not c.lose then
 	local w= print(string.format("HP: %d/%d",c.hp,c.maxhp),0,-6)
@@ -320,10 +322,16 @@ function titlescr()
 				rect(x,y,27,32,15)
 				if coll(c.x,c.y,1,1, x,y,27,32) then
 				rectb(x,y,27,32,t%16)
+				print(l,x+2,y+14+8,t%16,false,1,true)
+				if btn(4) or left then
+						if i==1 then TIC=update end
+						if i==3 then TIC=credits end
+				end
 				else
 				rectb(x,y,27,32,1)
-				end
 				print(l,x+2,y+14+8,1,false,1,true)
+				end
+				spr(85+(i-1)*(16*2),x+5,y+4,0,1,0,0,2,2)
 		end
 		
 		print('Card',240/2-60-30-1,30,1,false,5,false)
@@ -349,6 +357,80 @@ function titlescr()
 end
 
 TIC=titlescr
+
+function credits()
+		local mx,my,left=mouse()
+		c.x=mx; c.y=my
+
+		local cycle={6,9,12,15}
+		for i=0,136,8 do
+				local col=cycle[((i+t*0.8)//8)%4+1]
+				rect(0,i,240,8,col)
+				local col2
+				if col==6 then col2=9 end
+				if col==9 then col2=12 end
+				if col==12 then col2=15 end
+				if col==15 then col2=6 end
+				if i==8*3 then 
+				local w=print('Design, art, audio & code by',0,-6,col2,false,1,false)
+				print('Design, art, audio & code by',240/2-w/2,8*3+1,col2,false,1,false)
+				end
+				if i==8*4 then 
+				local w=print('verysoftwares',0,-6,col2,false,1,false)
+				print('verysoftwares',240/2-w/2,8*4+1,col2,false,1,false)
+				end
+				if i==8*6 then 
+				local w=print('Originally for Ludum Dare 43',0,-6,col2,false,1,false)
+				print('Originally for Ludum Dare 43',240/2-w/2,8*6+1,col2,false,1,false)
+				end
+				if i==8*8 then 
+				local w=print('Special thanks to',0,-6,col2,false,1,false)
+				print('Special thanks to',240/2-w/2,8*8+1,col2,false,1,false)
+				end
+				if i==8*9 then 
+				local w=print('Stefan & Yollie',0,-6,col2,false,1,false)
+				print('Stefan & Yollie',240/2-w/2,8*9+1,col2,false,1,false)
+				end
+		end
+
+		rect(0,136-32,240,32,15)
+
+		for i,l in ipairs(titlecards) do
+				local x=(i-1)*27+12
+				local y=136-32
+				rect(x,y,27,32,15)
+				if coll(c.x,c.y,1,1, x,y,27,32) then
+				rectb(x,y,27,32,t%16)
+				print(l,x+2,y+14+8,t%16,false,1,true)
+				if btn(4) or left then
+						if i==1 then TIC=update end
+						if i==3 then TIC=credits end
+				end
+				else
+				rectb(x,y,27,32,1)
+				print(l,x+2,y+14+8,1,false,1,true)
+				end
+				spr(85+(i-1)*(16*2),x+5,y+4,0,1,0,0,2,2)
+		end
+
+		if btn(4) or left then c.sprite=37 else c.sprite=5 end
+		spr(c.sprite,c.x,c.y,4,1,0,0,2,2)
+
+		if coll(c.x,c.y,1,1, 240-27,136-32,27,32) then
+				rectb(240-27,136-32,27,32,t%16)
+				print('Skip',240-27+2,136-32+14+8,t%16,false,1,true)
+				spr(161,240-27+5,136-32+4,0,1,0,0,2,2)
+				if btn(4) or left then
+						TIC=titlescr
+				end
+		else
+				rectb(240-27,136-32,27,32,1)
+				print('Skip',240-27+2,136-32+14+8,1,false,1,true)
+				spr(161,240-27+5,136-32+4,0,1,0,0,2,2)
+		end
+
+		t=t+1
+end
 
 function enemycard(id)
 		if id=='Rocopter' then return 'Sleep' end
@@ -1079,6 +1161,8 @@ end
 -- 082:0000900000999000009999000009990099099990999099909000000000000000
 -- 083:00000a000000aa00000a000000aa000000aa0000000aaaaa0000000000000000
 -- 084:00a0000000aa00000000a0000000aa000000aa00aaaaa0000000000000000000
+-- 085:0000000000000000000a0000000aaa00000a99aa000a9999000a9999000a9999
+-- 086:0000000000000000000000000000000000000000aa00000099aa00009999a000
 -- 088:000000000000000000000000000000000000000000000000000000770000077c
 -- 089:0000cccc00007ccc000077cc0cccccc700ccccc777cccc777c7ccc7ccc777ccc
 -- 090:c7ccccc0c7cc77007cc777007ccccc00cccccc00cccccc70ccccc770ccc77c7c
@@ -1090,6 +1174,8 @@ end
 -- 097:0000000000000000000000000000000000000000000000090000009900000999
 -- 098:0000000000000000000000000000000000000000900000009900000099900000
 -- 099:0000000000000000000099000009999000999999009999990009999000009900
+-- 101:000a9999000a9999000a99aa000aaa00000a0000000000000000000000000000
+-- 102:99aa0000aa000000000000000000000000000000000000000000000000000000
 -- 104:0000c7cc000c7ccc0007cc2c007c7cc20077cccc007ccccc00cccccc00cccccc
 -- 105:cccc777ccccccc77cccccccc2222ccc2cccccccccccccccccccccccccccccccc
 -- 106:c777ccc77ccccccccccc2ccc2222cccccccccccccccccccccccccccccccccccc
@@ -1101,6 +1187,8 @@ end
 -- 113:0000099900000099000000090000000000000000000000000000000000000000
 -- 114:9990000099000000900000000000000000000000000000000000000000000000
 -- 116:0099000009999000999999009999990009999000009900000000000000000000
+-- 117:00000000000000000000000a000aa00a000aaaa90000aa900000a90000aa900a
+-- 118:0000000000000000a0000000a00aa0009aaaa00009aa0000009a0000a009aa00
 -- 120:007c22c2007cc2220077c22c000c7ccc0077c7cc00777c7c0007770000077000
 -- 121:22222222cccccccccccc77cccccccccccccccccccccccccc77ccccc700000000
 -- 122:222c2ccccc222cc7cc22cccccccccc7ccccccc7ccc7cc770777c777000007700
@@ -1113,6 +1201,8 @@ end
 -- 130:0000000090000000990000009990000099900000990000009000000000000000
 -- 131:00aaaaaa00a0000000a0000000a0000000a0000000a0000000a0000000a00000
 -- 132:aaaaaa0000000a0000000a0000000a0000000a0000000a0000000a0000000a00
+-- 133:00aa900a0000a9000000aa90000aaaa9000aa00a0000000a0000000000000000
+-- 134:a009aa00009a000009aa00009aaaa000a00aa000a00000000000000000000000
 -- 137:000000bb00000bbb0000bbbb0000bbbb000bbbbb000bbbbb000bbbbb000bbbbb
 -- 138:b0000000bb300000bbb30000bbbb0000bbbb3000bbbb3000bbbb3000bbbb3300
 -- 139:0000000000000000000000000000000000bbb00000bbbb0000bbbb000bbbbb00
@@ -1123,6 +1213,8 @@ end
 -- 146:0009900000999900099999900999999000999900000990000000000000000000
 -- 147:00a0000000a0000000a0000000a0000000a0000000a0000000a0000000aaaaaa
 -- 148:00000a0000000a0000000a0000000a0000000a0000000a0000000a00aaaaaa00
+-- 149:000000000000aa00000aaa0000aaaa000000aa000000aa0000aaaaa000000000
+-- 150:0000000009999000099990000009900000999000000990000999900000000000
 -- 152:00000bb00000bbbb000bbbbb000bbbbb000bbbb3000bbbb3000bbbb3000bbbb3
 -- 153:00bbbbbb00bbbbbb00bbbbbb00bb2bbb00bb2bbb00bb2bbb00bb2bbb03bbbbbb
 -- 154:bbbbb300bbbbb300bbbbb300b2bb3300b2bb3300b2bb330bb2bb33bbbbbb33bb
@@ -1135,6 +1227,8 @@ end
 -- 162:0000000000000000aaaaa0000000aa00aa000aa00aa000aaaa0000aaa0000aa0
 -- 163:0000000000000099000009000000090000999000090009000900090090000099
 -- 164:0000000090000000090000000900000000999000090009000900090090000090
+-- 165:0099990000999900000099000009990000009900009999000000000000000000
+-- 166:aaaaa000aaaaa000000aa00000aa000000aa000000aa00000000000000000000
 -- 168:000bbbb3000bbbb3000bbbbb000bbbbb0000bbbb0000bbbb0000bbbb0000bbbb
 -- 169:03bbbbbb0bbbbb220bbbbb223bbbbb22bbbbbbbbbbbbbbbbb3bbbbbb3bbbbbbb
 -- 170:bbbb3bbbbbbb3bbbbbbbb3bbbbbbb3bbbbbbb3b3bbbbbbb0bbbbbb00bbbbbb00
