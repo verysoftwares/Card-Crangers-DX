@@ -973,7 +973,12 @@ function cursorctrl()
 			clearcards()
 	end
 	if c.state=='Clone' then
+			if not cloneitself_t then 
 			top='Clone which card?'
+			else
+					cloneitself_t=cloneitself_t-1
+					if cloneitself_t<=0 then cloneitself_t=nil end
+			end
 			for i=cam.i,cam.i+6 do
 					local v=cards[i]
 					if not v then break end
@@ -984,7 +989,8 @@ function cursorctrl()
 					if (not c.sleep) and coll(c.x,c.y,1,1, x,y,27,32) then
 							--hover
 								
-							if btn(4) or leftclick then 
+							if btn(4) or leftclick then
+									if i~=c.cardno then 
 									for j=1,1+combovalue() do
 											ins(cards,v)
 									end
@@ -996,6 +1002,10 @@ function cursorctrl()
 									c.state='hit'
 									c.anim=120
 									clearcards()
+									else
+									top='The card can\'t clone itself.'
+									cloneitself_t=100
+									end
 							end
 
 							rectb(x,y,27,32,t%16)
