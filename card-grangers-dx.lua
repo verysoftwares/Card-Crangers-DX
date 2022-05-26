@@ -1016,7 +1016,8 @@ function cursorctrl()
 					local e=enemies[i]
 					if e.hp<=0 then e.gone=true end
 			end
-			for i=#enemies,1,-1 do
+			local i=1
+			while i<=#enemies do
 					local e=enemies[i]
 					if e.hp<=0 then if not e.loot then
 					c.anim=140; c.hit=nil;
@@ -1037,7 +1038,9 @@ function cursorctrl()
 					end end
 					end 
 					table.remove(enemies,i)
+					i=i-1
 					end
+					i=i+1
 			end
 			if not honeyrem and not spikerem and not enemyloot then
 			c.state="idle"; nextturn(); 
