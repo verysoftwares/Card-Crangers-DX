@@ -23,6 +23,7 @@ allenemies={"Rocopter","Cactic","Bumbler",'Yggdra'}
 drafted=0
 defeated=0
 
+encounter=1
 function renemy(place)
 		local out = {}
 		local e = allenemies[math.random(#allenemies)]
@@ -769,7 +770,6 @@ function enemycard(id)
 		if id=='Yggdra' then return 'Clone' end
 end
 
-encounter=1
 function nextturn()
 		if turn==c then
 				--turn=enemies[1]
