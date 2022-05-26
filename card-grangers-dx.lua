@@ -72,6 +72,8 @@ function update()
 	local mx,my,left=mouse()
 	c.x=mx; c.y=my
 
+	DJ()
+		
 	if btn(4) or left then c.sprite=37 else c.sprite=5 end
 	
 	bg()
@@ -289,10 +291,18 @@ function titlescr()
 	
 		cls(12)
 		
-		local mx,my,left=mouse()
+		old_left=left		
+		mx,my,left=mouse()
+		if not leftclick then
+				leftclick=left and not old_left
+		else
+				leftclick=false
+		end
+		
 		c.x=mx; c.y=my
-
 		poke(0x3FFB,0) -- hide system cursor
+		
+		DJ()
 		
 		bg_t=bg_t or 0
 		rect(0,8,240,8,6+math.floor(((bg_t)*0.15+2)%3)*3)
@@ -351,12 +361,16 @@ function titlescr()
 				local y=136-32
 				rect(x,y,27,32,15)
 				if coll(c.x,c.y,1,1, x,y,27,32) then
-				rectb(x,y,27,32,t%16)
-				print(l,x+2,y+14+8,t%16,false,1,true)
-				if btn(4) or left then
+				local col
+				if FLASHSPD==0 then col=14
+				else col=(t*FLASHSPD)%16 end
+				rectb(x,y,27,32,col)
+				print(l,x+2,y+14+8,col,false,1,true)
+				if btnp(4) or leftclick then
 						if i==1 then TIC=update; music() end
-						if i==2 then TIC=options end
+						if i==2 then TIC=options; c.state='card' end
 						if i==3 then TIC=credits end
+						sfx(4,12*3+5,12,2)
 				end
 				else
 				rectb(x,y,27,32,1)
@@ -424,15 +438,24 @@ TIC=titlescr
 
 function credits()
 		--poke4(0xFF9C*2+3,5)
-		local mx,my,left=mouse()
+		old_left=left		
+		mx,my,left=mouse()
+		if not leftclick then
+				leftclick=left and not old_left
+		else
+				leftclick=false
+		end
+		
 		c.x=mx; c.y=my
 		poke(0x3FFB,0) -- hide system cursor
 
+		DJ()
+		
 		local cycle={6,9,12,15}
 		for i=0,136,8 do
-				local col=cycle[((i+t*0.24)//8)%4+1]
+				local col=cycle[((i+t*0.4*FLASHSPD)//8)%4+1]
 				rect(0,i,240,8,col)
-				local col2=cycle[((i+t*0.24)//8+1)%4+1]
+				local col2=cycle[((i+t*0.4*FLASHSPD)//8+1)%4+1]
 				if i==8*3 then 
 				local w=print('Design, art, audio & code by',0,-6,col2,false,1,false)
 				print('Design, art, audio & code by',240/2-w/2,8*3+1,col2,false,1,false)
@@ -462,12 +485,16 @@ function credits()
 				local y=136-32
 				rect(x,y,27,32,15)
 				if coll(c.x,c.y,1,1, x,y,27,32) then
-				rectb(x,y,27,32,t%16)
-				print(l,x+2,y+14+8,t%16,false,1,true)
-				if btn(4) or left then
+				local col
+				if FLASHSPD==0 then col=14
+				else col=(t*FLASHSPD)%16 end
+				rectb(x,y,27,32,col)
+				print(l,x+2,y+14+8,col,false,1,true)
+				if btnp(4) or leftclick then
 						if i==1 then TIC=update; music() end
-						if i==2 then TIC=options end
+						if i==2 then TIC=options; c.state='card' end
 						if i==3 then TIC=credits end
+						sfx(4,12*3+5,12,2)
 				end
 				else
 				rectb(x,y,27,32,1)
@@ -477,11 +504,15 @@ function credits()
 		end
 
 		if coll(c.x,c.y,1,1, 240-27,136-32,27,32) then
-				rectb(240-27,136-32,27,32,t%16)
-				print('Skip',240-27+2,136-32+14+8,t%16,false,1,true)
+				local col
+				if FLASHSPD==0 then col=14
+				else col=(t*FLASHSPD)%16 end
+				rectb(240-27,136-32,27,32,col)
+				print('Skip',240-27+2,136-32+14+8,col,false,1,true)
 				spr(161,240-27+5,136-32+4,0,1,0,0,2,2)
 				if btn(4) or left then
 						TIC=titlescr
+						sfx(4,12*3+5,12,2)
 				end
 		else
 				rectb(240-27,136-32,27,32,1)
@@ -497,12 +528,49 @@ end
 
 optcards={'Plus 0','Plus 1','Plus 2','Plus 3'}
 
+function nonplussed()
+		for i=0,3 do
+				if not find(optcards,string.format('Plus %d',i)) then return true end
+		end
+		for i,v in ipairs({'Music','SFX','Flash'}) do
+				if find(optcards,v) then return false end
+		end
+		return true
+end
+
+MUSICVOL=5/6*15
+SFXVOL=5/6*15
+FLASHSPD=1
+
+function DJ()
+		poke4(0x14000*2,math.floor(MUSICVOL))
+		poke4(0x14000*2+1,math.floor(MUSICVOL))
+		poke4(0x14000*2+2,math.floor(MUSICVOL))
+		poke4(0x14000*2+3,math.floor(MUSICVOL))
+		poke4(0x14000*2+4,math.floor(SFXVOL))
+		poke4(0x14000*2+5,math.floor(SFXVOL))
+		poke4(0x14000*2+6,math.floor(8/15*MUSICVOL))
+		poke4(0x14000*2+7,math.floor(8/15*MUSICVOL))
+		--poke4(0xFF9C*2+(3+1+32)+3,math.floor(MUSICVOL))
+		--poke4(0xFF9C*2+(3+1+32)*2+3,math.floor(SFXVOL))
+		--poke4(0xFF9C*2+(3+1+32)*3+3,math.floor(8/15*MUSICVOL))
+end
+
 function options()
 		cls(12)
-		
-		local mx,my,left=mouse()
+
+		old_left=left		
+		mx,my,left=mouse()
+		if not leftclick then
+				leftclick=left and not old_left
+		else
+				leftclick=false
+		end
+
 		c.x=mx; c.y=my
 		poke(0x3FFB,0) -- hide system cursor
+		
+		DJ()
 		
 		bg_t=bg_t or 0
 		rect(0,8,240,8,6+math.floor(((bg_t)*0.15+2)%3)*3)
@@ -521,14 +589,114 @@ function options()
 		rect(0,136-32,240,32,15)
 		rect(0,0,240,8,15)
 		
+		if 1 then--c.state=="card" or nonplussed() then
+				local select=false
+				for i,v in ipairs({'Music','SFX','Flash'}) do if find(optcards,v) then select=true; break end end
+				if c.state=='card' then 
+						if not select then top='Pick an option card.' 
+						else top='Make a combo.' end
+				end
+				if (not deckcards) or #deckcards==0 then deckcards={}; for i,v in ipairs({'Music','SFX','Flash'}) do if not find(optcards,v) then ins(deckcards,v) end end; for i=0,3 do if not find(optcards,string.format('Plus %d',i)) then ins(deckcards,string.format('Plus %d',i)) end end end
+				local x=80
+				--if #deckcards>3 then end
+				x=x-(#deckcards-3)*27/2 
+
+				for i,v in ipairs(deckcards) do
+						rect(x+(i-1)*27,40,27,32,15)
+						if coll(c.x,c.y,1,1, x+(i-1)*27,40,27,32) then
+								local col
+								if FLASHSPD==0 then col=14
+								else col=(t*FLASHSPD)%16 end				
+								rectb(x+(i-1)*27,40,27,32,col)
+								print(v,x+(i-1)*27+2,40+14+8,col,false,1,true)
+								if v=="Music" then spr(181,x+(i-1)*27+5,40+4,0,1,0,0,2,2) end
+								if v=="SFX" then spr(213,x+(i-1)*27+5,40+4,0,1,0,0,2,2) end
+								if v=="Flash" then spr(227,x+(i-1)*27+5,40+4,0,1,0,0,2,2) end
+								if v=="Plus 1" then spr(97,x+(i-1)*27+5,40+4,0,1,0,0,2,2) end
+								if v=="Plus 2" then spr(99,x+(i-1)*27+5,40+4,0,1,0,0,2,2) end
+								if v=="Plus 3" then spr(129,x+(i-1)*27+5,40+4,0,1,0,0,2,2) end
+								
+								if btnp(4) or leftclick then
+										table.insert(optcards,v)
+										local select=false
+										for i,v in ipairs({'Music','SFX','Flash'}) do if find(optcards,v) then select=true; break end end
+										if select then c.state="idle" end
+										deckcards=nil
+										c.combo=nil
+										top=''
+										sfx(4,12*3+5,12,2)
+										return
+								end
+								
+						else
+								rectb(x+(i-1)*27,40,27,32,1)
+								print(v,x+(i-1)*27+2,40+14+8,1,false,1,true)
+								if v=="Music" then spr(181,x+(i-1)*27+5,40+4,0,1,0,0,2,2) end
+								if v=="SFX" then spr(213,x+(i-1)*27+5,40+4,0,1,0,0,2,2) end
+								if v=="Flash" then spr(227,x+(i-1)*27+5,40+4,0,1,0,0,2,2) end
+								if v=="Plus 1" then spr(97,x+(i-1)*27+5,40+4,0,1,0,0,2,2) end
+								if v=="Plus 2" then spr(99,x+(i-1)*27+5,40+4,0,1,0,0,2,2) end
+								if v=="Plus 3" then spr(129,x+(i-1)*27+5,40+4,0,1,0,0,2,2) end
+						end
+				end
+		end
+
+		if c.state=='hit' then
+				if c.anim then
+						c.anim=c.anim-1
+						if c.anim<=0 then c.state='card'; c.anim=nil end
+				end
+		end
+		
+		if c.state=='idle' then
+				if mustbecombod_t then
+						mustbecombod_t=mustbecombod_t-1
+						if mustbecombod_t<=0 then mustbecombod_t=nil end
+				else top='Now make a combo.' end
+		end
+
 		for i,l in ipairs(optcards) do
 				local x=(i-1)*27+12
 				local y=136-32
+				if c.combo then for j,w in ipairs(c.combo) do if w[2]==i then y=y-8; rect(x,y,27,32,15); break end end end
 				rect(x,y,27,32,15)
 				if coll(c.x,c.y,1,1, x,y,27,32) then
-				rectb(x,y,27,32,t%16)
-				print(l,x+2,y+14+8,t%16,false,1,true)
-				if btn(4) or left then
+				local col
+				if FLASHSPD==0 then col=14
+				else col=(t*FLASHSPD)%16 end
+				rectb(x,y,27,32,col)
+				print(l,x+2,y+14+8,col,false,1,true)
+				if (c.state=='idle' or sub(c.state,1,4)=='Plus') and (btnp(4) or leftclick) then
+						if (l=='Music' or l=='SFX' or l=='Flash') then
+								if not c.combo then
+								top='This card must be combo\'d with a Plus card.'
+								mustbecombod_t=140
+								else
+										if l=='Music' then MUSICVOL=15/6*combovalue(); top=string.format('Music volume set to %d/6.',combovalue()) end
+										if l=='SFX' then SFXVOL=15/6*combovalue(); top=string.format('SFX volume set to %d/6.',combovalue()) end
+										if l=='Flash' then FLASHSPD=combovalue()*0.2; top=string.format('Flashing speed set to %d/6.',combovalue()) end
+										c.state='hit'
+										c.anim=140
+										c.cardno=i
+										clearcards(optcards)
+										deckcards=nil
+										c.combo=nil
+										mustbecombod_t=nil
+										sfx(4,12*3+5,12,2)
+								end
+						else
+						if sub(l,1,4)=='Plus' then
+								if c.combo then for j,w in ipairs(c.combo) do if w[2]==i then goto skip end end end
+								c.combo=c.combo or {}
+								ins(c.combo,{l,i})
+								table.sort(c.combo,function(a,b) return a[2]<b[2] end)
+						else
+						c.cardno=i
+						end
+						c.state=l
+						sfx(4,12*3+5,12,2)
+						::skip::						
+						end
 				end
 				else
 				rectb(x,y,27,32,1)
@@ -537,11 +705,38 @@ function options()
 				if l=='Plus 1' then spr(97,x+5,y+4,0,1,0,0,2,2) end
 				if l=='Plus 2' then spr(99,x+5,y+4,0,1,0,0,2,2) end
 				if l=='Plus 3' then spr(129,x+5,y+4,0,1,0,0,2,2) end
+				if l=="Music" then spr(181,x+5,y+4,0,1,0,0,2,2) end
+				if l=="SFX" then spr(213,x+5,y+4,0,1,0,0,2,2) end
+				if l=="Flash" then spr(227,x+5,y+4,0,1,0,0,2,2) end
+		end
+
+		if coll(c.x,c.y,1,1, 240-27,136-32,27,32) then
+				local col
+				if FLASHSPD==0 then col=14
+				else col=(t*FLASHSPD)%16 end
+				rectb(240-27,136-32,27,32,col)
+				print('Skip',240-27+2,136-32+14+8,col,false,1,true)
+				spr(161,240-27+5,136-32+4,0,1,0,0,2,2)
+				if btnp(4) or leftclick then
+						optcards={'Plus 0','Plus 1','Plus 2','Plus 3'}
+						deckcards=nil
+						c.state='card'
+						c.combo=nil
+						TIC=titlescr
+						sfx(4,12*3+5,12,2)
+				end
+		else
+				rectb(240-27,136-32,27,32,1)
+				print('Skip',240-27+2,136-32+14+8,1,false,1,true)
+				spr(161,240-27+5,136-32+4,0,1,0,0,2,2)
 		end
 		
 		if btn(4) or left then c.sprite=37 else c.sprite=5 end
 		spr(c.sprite,c.x,c.y,4,1,0,0,2,2)
 		
+		local w= print(top,0,1,15)
+		print(top,240/2-w/2,1,6)
+
 		t=t+1
 end
 
@@ -627,23 +822,24 @@ function rcard2()
 		return allcards[math.random( #allcards )]
 end
 
-function clearcards()
+function clearcards(tbl)
+		tbl=tbl or cards
 		if c.combo then 
 		local cno_rem=false
 		for j=#c.combo,1,-1 do
 				local w=c.combo[j]; 
 				if (not cno_rem) and c.cardno>w[2] then
-				rem(cards,c.cardno)
+				rem(tbl,c.cardno)
 				cno_rem=true
 				end
-				rem(cards,w[2])
+				rem(tbl,w[2])
 				if (not cno_rem) and c.cardno<w[2] and ((not c.combo[j-1]) or (c.combo[j-1] and c.cardno>c.combo[j-1][2])) then
-				rem(cards,c.cardno)
+				rem(tbl,c.cardno)
 				cno_rem=true
 				end
 		end
 		else
-		table.remove(cards,c.cardno)
+		table.remove(tbl,c.cardno)
 		end
 end
 
@@ -676,11 +872,16 @@ function cursorctrl()
 
 	if c.state~='card' and c.state~='hit' and c.state~='waitsfx' then
 			if coll(c.x,c.y,1,1, 240-27,136-32,27,32) then
-					rectb(240-27,136-32,27,32,t%16)
-					print('Skip',240-27+2,136-32+14+8,t%16,false,1,true)
+					local col
+					if FLASHSPD==0 then col=14
+					else col=(t*FLASHSPD)%16 end
+					rectb(240-27,136-32,27,32,col)
+					print('Skip',240-27+2,136-32+14+8,col,false,1,true)
 					spr(161,240-27+5,136-32+4,0,1,0,0,2,2)
 					if btn(4) or left then
-							nextturn()
+							sfx(4,12*3+5,12,2)
+							c.state='waitsfx'
+							c.draftt=30
 					end
 			else
 					rectb(240-27,136-32,27,32,1)
@@ -708,8 +909,11 @@ function cursorctrl()
 
 			for i,v in ipairs(deckcards) do
 					if coll(c.x,c.y,1,1, 80+(i-1)*27,40,27,32) then
-							rectb(80+(i-1)*27,40,27,32,t%16)
-							print(v,80+(i-1)*27+2,40+14+8,t%16,false,1,true)
+							local col
+							if FLASHSPD==0 then col=14
+							else col=(t*FLASHSPD)%16 end
+							rectb(80+(i-1)*27,40,27,32,col)
+							print(v,80+(i-1)*27+2,40+14+8,col,false,1,true)
 							if v=="Attack" then spr(33,80+(i-1)*27+5,40+4,0,1,0,0,2,2) end
 							if v=="Defend" then spr(35,80+(i-1)*27+5,40+4,0,1,0,0,2,2) end
        if v=="Spell" then spr(65,80+(i-1)*27+5,40+4,0,1,0,0,2,2) end
@@ -758,9 +962,11 @@ function cursorctrl()
 					local x=(i-cam.i)*27+12
 					if (not c.sleep) and coll(c.x,c.y,1,1, x,136-32,27,32) then
 							--hover
-								
-							rectb(x,136-32,27,32,t%16)
-							print(v,x+2,136-32+14+8,t%16,false,1,true)
+							local col
+							if FLASHSPD==0 then col=14
+							else col=(t*FLASHSPD)%16 end						
+							rectb(x,136-32,27,32,col)
+							print(v,x+2,136-32+14+8,col,false,1,true)
 					else
 							rectb(x,136-32,27,32,1)
 							print(v,x+2,136-32+14+8,1,false,1,true)
@@ -1054,6 +1260,7 @@ function cursorctrl()
 									end
 									c.state='hit'
 									c.anim=120
+									cloneitself_t=nil
 									clearcards()
 									else
 									top='The card can\'t clone itself.'
@@ -1061,8 +1268,11 @@ function cursorctrl()
 									end
 							end
 
-							rectb(x,y,27,32,t%16)
-							print(v,x+2,y+14+8,t%16,false,1,true)
+							local col
+							if FLASHSPD==0 then col=14
+							else col=(t*FLASHSPD)%16 end
+							rectb(x,y,27,32,col)
+							print(v,x+2,y+14+8,col,false,1,true)
 							if v=="Attack" then spr(33,x+5,y+4,0,1,0,0,2,2) end
 							if v=="Defend" then spr(35,x+5,y+4,0,1,0,0,2,2) end
 							if v=="Spell" then spr(65,x+5,y+4,0,1,0,0,2,2) end
@@ -1149,8 +1359,11 @@ function cursorctrl()
 									::skip::
 							end
 							
-							rectb(x,y,27,32,t%16)
-							print(v,x+2,y+14+8,t%16,false,1,true)
+							local col
+							if FLASHSPD==0 then col=14
+							else col=(t*FLASHSPD)%16 end
+							rectb(x,y,27,32,col)
+							print(v,x+2,y+14+8,col,false,1,true)
 							if v=="Attack" then spr(33,x+5,y+4,0,1,0,0,2,2) end
 							if v=="Defend" then spr(35,x+5,y+4,0,1,0,0,2,2) end
 							if v=="Spell" then spr(65,x+5,y+4,0,1,0,0,2,2) end
@@ -1205,7 +1418,7 @@ function bg()
 	rect(240-8-8,24+8,8,72-24,6+math.floor(((bg_t)*0.15+1)%3)*3)
 	rect(240-8-16,24+8,8,72-24,6+math.floor(((bg_t)*0.15+2)%3)*3)
 	if c.state=="card" then
-	bg_t=bg_t+1
+	bg_t=bg_t+FLASHSPD
 	else bg_t=0 end
 end
 
@@ -1214,6 +1427,10 @@ function coll(x1,y1,w1,h1, x2,y2,w2,h2)
          x2 < x1+w1 and
          y1 < y2+h2 and
          y2 < y1+h1
+end
+
+function find(tbl,what)
+		for i,v in ipairs(tbl) do if v==what then return i end end
 end
 
 -- <TILES>
@@ -1364,6 +1581,8 @@ end
 -- 178:000aa0000aa00000a00000000000000000000000000000000000000000000000
 -- 179:0900090009000900009990000000090000000900000000990000000000000000
 -- 180:0900090009000900009990000900000009000000900000000000000000000000
+-- 181:000000000000000000000aaa00000aaa00000a0000000a0000000a0000000a00
+-- 182:0000000000000000a0000000aaaaa0000aaaa0000000a0000000a0000000a000
 -- 184:00000bb300000033000000030000000000000000000000000000000000000000
 -- 185:3bbbbbbb3bbbbbbb3bbbbbbb0bbbbbbb0bbbbbbb0bbbbbbb0bbbbbbb0bbbbbbb
 -- 186:bbbbbb00bbbb3000bbbb3000bbbb3000bbb30000bb330000bb330000bb330000
@@ -1374,6 +1593,8 @@ end
 -- 194:000000000000000000000000a0000000a00000000a0000000a00000000a00000
 -- 195:00000000000000000aaaaa000a000a000aaa0a0000a00a000a00a0090a000a00
 -- 196:0000000000000000000000000000000000000000000000009900000009000000
+-- 197:000aaa0000aaaa0000aaaa00000aa00000000000000000000000000000000000
+-- 198:0000a0000000a00000aaa0000aaaa0000aaaa00000aa00000000000000000000
 -- 200:eeeee000e000eee0000000ee0000000e000000ee00000ee30000ee33000ee633
 -- 201:00000eee0000ee000000e0000000e000eeeee00033333ee0333333ee3336633e
 -- 202:eee0000a000e0aaa0000aa33000aa333000a3333000aa3a3000a3a33000aa3a3
@@ -1386,6 +1607,8 @@ end
 -- 210:00a00000000a0000000a00000000a0000000a000009900009900000000000000
 -- 211:0aaaaa0000000009000000090000000000000000000000000000000000000000
 -- 212:90000000000aaa0099000a00000a0000000aaa00000000000000000000000000
+-- 213:0000000000090000000900000090009000900090009009000900090009000900
+-- 214:00000000000000000aa000000a0a00000a0aa000a00aa000a000aaa0a0aaaaa0
 -- 216:000e6663000e666600093666000e33660009e333000093330000933300000933
 -- 217:336663333666633336663333366333333333333e3333333e33333e9e3339e9e9
 -- 218:e00a3a3ae00aa3aae000aa3ae000a33aeeee333aeeeeeea3ee333eaae33333ee
@@ -1396,6 +1619,10 @@ end
 -- 223:aa3a333aa3a3a3333a3a333aa3a333aa3333aaa0aaaaa000a000000000000000
 -- 225:0000000000000aaa00000a0000000a0000000a0000000a0000000a0000000a00
 -- 226:00000000aaa00000000000000000000000a000000a0a0000a000a00000a00000
+-- 227:0000000000000009000000090000000900000090000000900000099000009900
+-- 228:0000000000000000900000009000000090000000900000000990000000999000
+-- 229:0900090009000900009009000090009000900090000900000009000000000000
+-- 230:a0aaaaa0a000aaa0a00aa0000a0aa0000a0a00000aa000000000000000000000
 -- 232:0000009300000009000000000000000000000000000000090000009900000990
 -- 233:39909e9e900099e3000099930009993309909933900009330000993300099933
 -- 234:3333333e333333333333333e333333ee3333ee3e333333ee333e39e933939e9e
@@ -1406,6 +1633,8 @@ end
 -- 239:e0000000ee000000ee000000eee00000eeee0000eeee0000eeeee000eeeee000
 -- 241:00000a00000a000a0000a0a000000a00000000000000000000000aaa00000000
 -- 242:00a0000000a0000000a0000000a0000000a0000000a00000aaa0000000000000
+-- 243:0999900000009990000000990000000900000009000000000000000000000000
+-- 244:0009999009990000090000009900000090000000900000009000000000000000
 -- 248:0000090000009000000090090000000000000000000000000000000000000000
 -- 249:0099009399900099900000090000009900009990009900000900099900009900
 -- 250:3399e9e939399e9e999999e99999999300999999999000990000000000000000
