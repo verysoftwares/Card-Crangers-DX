@@ -28,10 +28,10 @@ function renemy(place)
 		local e = allenemies[math.random(#allenemies)]
 		for i,f in ipairs(enemies) do if f.id==e then return renemy(place) end end
 		out.id=e
-		if out.id=="Rocopter" then out.sprite=76; out.hp=10-3; out.maxhp=10-3; out.atk=1 end
-		if out.id=="Cactic" then out.sprite=140; out.hp=16-3; out.maxhp=16-3; out.atk=2 end
-		if out.id=="Bumbler" then out.sprite=204; out.hp=9; out.maxhp=9; out.atk=3 end
-		if out.id=="Yggdra" then out.sprite=261; out.hp=16; out.maxhp=16; out.atk=0 end
+		if out.id=="Rocopter" then if encounter==2 and find(old_enemies,out.id) then return renemy(place) end; out.sprite=76; out.hp=10-3; out.maxhp=10-3; out.atk=1 end
+		if out.id=="Cactic" then if encounter==2 and find(old_enemies,out.id) then return renemy(place) end;  out.sprite=140; out.hp=16-3; out.maxhp=16-3; out.atk=2 end
+		if out.id=="Bumbler" then if encounter==2 and find(old_enemies,out.id) then return renemy(place) end;  out.sprite=204; out.hp=9; out.maxhp=9; out.atk=3 end
+		if out.id=="Yggdra" then if encounter==1 then return renemy(place) end; out.sprite=261; out.hp=16; out.maxhp=16; out.atk=0 end
 		out.y=40
 		if place==1 then out.x=80-40+20 end
 		if place==2 then out.x=80+20 end
@@ -55,6 +55,11 @@ enemies={}
 ins(enemies,renemy(4))
 ins(enemies,renemy(5))
 maxnmy=2
+
+old_enemies={}
+for i,e in ipairs(enemies) do
+		ins(old_enemies,e.id)
+end
 
 --music(0)
 
@@ -779,6 +784,10 @@ function nextturn()
 						encounter=encounter+1
 						turn=c
 						if encounter==2 then
+								ins(enemies,renemy(4))
+								ins(enemies,renemy(5))
+								maxnmy=2
+						elseif encounter==3 then
 								ins(enemies,renemy(1))
 								ins(enemies,renemy(2))
 								ins(enemies,renemy(3))
