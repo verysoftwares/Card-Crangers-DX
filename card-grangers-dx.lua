@@ -246,8 +246,8 @@ function update()
 	local w= print(string.format("HP: %d/%d",c.hp,c.maxhp),0,-6)
 	print(string.format("HP: %d/%d",c.hp,c.maxhp),240/2-w/2,136-32-8+2-64-32+8)
 
-	local w= print(string.format("Cards crafted: %d",drafted),0,-6)
-	print(string.format("Cards crafted: %d",drafted),240/2-w/2,136-32-8+2-64-32+8+8,12)
+	local w= print(string.format("Cards drafted: %d",drafted),0,-6)
+	print(string.format("Cards drafted: %d",drafted),240/2-w/2,136-32-8+2-64-32+8+8,12)
 
 	local w= print(string.format("Enemies defeated: %d",defeated),0,-6)
 	print(string.format("Enemies defeated: %d",defeated),240/2-w/2,136-32-8+2-64-32+8+8+8,9)
@@ -1014,6 +1014,10 @@ function cursorctrl()
 			local enemyloot=false
 			for i=#enemies,1,-1 do
 					local e=enemies[i]
+					if e.hp<=0 then e.gone=true end
+			end
+			for i=#enemies,1,-1 do
+					local e=enemies[i]
 					if e.hp<=0 then if not e.loot then
 					c.anim=140; c.hit=nil;
 					top=string.format('%s dropped loot: %s!',e.id,enemycard(e.id))
@@ -1021,7 +1025,7 @@ function cursorctrl()
 					drafted=drafted+1
 					enemyloot=true
 					e.loot=true
-					e.gone=true
+					--e.gone=true
 					defeated=defeated+1
 					break
 					else
