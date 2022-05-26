@@ -922,27 +922,37 @@ function cursorctrl()
 			else
 			top = "Pick 1, discard 2."
 			end
-			if not deckcards then deckcards={rcard(),rcard(),rcard()} end
+			if (not deckcards) or #deckcards<=3 then 
+					deckcards=deckcards or {}
+					c.deck_t=c.deck_t or 0
+					if #deckcards<3 then if c.deck_t%12==0 then ins(deckcards,rcard()) end end
+					c.deck_t=c.deck_t+1
+			end
 
 			for i,v in ipairs(deckcards) do
-					if coll(c.x,c.y,1,1, 80+(i-1)*27,40,27,32) then
+					local y=40
+					if c.deck_t<12 and i==1 then y=y-(12-c.deck_t%12) end
+					if c.deck_t>=12 and c.deck_t<24 and i==2 then y=y-(12-c.deck_t%12) end
+					if c.deck_t>=24 and c.deck_t<36 and i==3 then y=y-(12-c.deck_t%12) end
+					rect(80+(i-1)*27,y,27,32,15)
+					if coll(c.x,c.y,1,1, 80+(i-1)*27,y,27,32) then
 							local col
 							if FLASHSPD==0 then col=14
 							else col=(t*FLASHSPD)%16 end
-							rectb(80+(i-1)*27,40,27,32,col)
-							print(v,80+(i-1)*27+2,40+14+8,col,false,1,true)
-							if v=="Attack" then spr(33,80+(i-1)*27+5,40+4,0,1,0,0,2,2) end
-							if v=="Defend" then spr(35,80+(i-1)*27+5,40+4,0,1,0,0,2,2) end
-       if v=="Spell" then spr(65,80+(i-1)*27+5,40+4,0,1,0,0,2,2) end
-							if v=="Item" then spr(67,80+(i-1)*27+5,40+4,0,1,0,0,2,2) end
-							if v=="Plus 1" then spr(97,80+(i-1)*27+5,40+4,0,1,0,0,2,2) end
-							if v=="Plus 2" then spr(99,80+(i-1)*27+5,40+4,0,1,0,0,2,2) end
-							if v=="Plus 3" then spr(129,80+(i-1)*27+5,40+4,0,1,0,0,2,2) end
-							if v=="Draft" then spr(131,80+(i-1)*27+5,40+4,0,1,0,0,2,2) end
-							if v=="Honey" then spr(163,80+(i-1)*27+5,40+4,0,1,0,0,2,2) end
-							if v=="Spike" then spr(193,80+(i-1)*27+5,40+4,0,1,0,0,2,2) end
-							if v=="Sleep" then spr(195,80+(i-1)*27+5,40+4,0,1,0,0,2,2) end
-							if v=="Clone" then spr(225,80+(i-1)*27+5,40+4,0,1,0,0,2,2) end
+							rectb(80+(i-1)*27,y,27,32,col)
+							print(v,80+(i-1)*27+2,y+14+8,col,false,1,true)
+							if v=="Attack" then spr(33,80+(i-1)*27+5,y+4,0,1,0,0,2,2) end
+							if v=="Defend" then spr(35,80+(i-1)*27+5,y+4,0,1,0,0,2,2) end
+       if v=="Spell" then spr(65,80+(i-1)*27+5,y+4,0,1,0,0,2,2) end
+							if v=="Item" then spr(67,80+(i-1)*27+5,y+4,0,1,0,0,2,2) end
+							if v=="Plus 1" then spr(97,80+(i-1)*27+5,y+4,0,1,0,0,2,2) end
+							if v=="Plus 2" then spr(99,80+(i-1)*27+5,y+4,0,1,0,0,2,2) end
+							if v=="Plus 3" then spr(129,80+(i-1)*27+5,y+4,0,1,0,0,2,2) end
+							if v=="Draft" then spr(131,80+(i-1)*27+5,y+4,0,1,0,0,2,2) end
+							if v=="Honey" then spr(163,80+(i-1)*27+5,y+4,0,1,0,0,2,2) end
+							if v=="Spike" then spr(193,80+(i-1)*27+5,y+4,0,1,0,0,2,2) end
+							if v=="Sleep" then spr(195,80+(i-1)*27+5,y+4,0,1,0,0,2,2) end
+							if v=="Clone" then spr(225,80+(i-1)*27+5,y+4,0,1,0,0,2,2) end
 
 							if btnp(4) or leftclick then
 									table.insert(cards,v)
@@ -951,25 +961,26 @@ function cursorctrl()
 									elseif not c.draft then c.state="idle" end
 									deckcards=nil
 									c.combo=nil
+									c.deck_t=nil
 									sfx(4,12*3+5,12,2)
 									return
 							end
 							
 					else
-							rectb(80+(i-1)*27,40,27,32,1)
-							print(v,80+(i-1)*27+2,40+14+8,1,false,1,true)
-							if v=="Attack" then spr(33,80+(i-1)*27+5,40+4,0,1,0,0,2,2) end
-							if v=="Defend" then spr(35,80+(i-1)*27+5,40+4,0,1,0,0,2,2) end
-       if v=="Spell" then spr(65,80+(i-1)*27+5,40+4,0,1,0,0,2,2) end
-							if v=="Item" then spr(67,80+(i-1)*27+5,40+4,0,1,0,0,2,2) end
-							if v=="Plus 1" then spr(97,80+(i-1)*27+5,40+4,0,1,0,0,2,2) end
-							if v=="Plus 2" then spr(99,80+(i-1)*27+5,40+4,0,1,0,0,2,2) end
-							if v=="Plus 3" then spr(129,80+(i-1)*27+5,40+4,0,1,0,0,2,2) end
-							if v=="Draft" then spr(131,80+(i-1)*27+5,40+4,0,1,0,0,2,2) end
-							if v=="Honey" then spr(163,80+(i-1)*27+5,40+4,0,1,0,0,2,2) end
-							if v=="Spike" then spr(193,80+(i-1)*27+5,40+4,0,1,0,0,2,2) end
-							if v=="Sleep" then spr(195,80+(i-1)*27+5,40+4,0,1,0,0,2,2) end
-							if v=="Clone" then spr(225,80+(i-1)*27+5,40+4,0,1,0,0,2,2) end
+							rectb(80+(i-1)*27,y,27,32,1)
+							print(v,80+(i-1)*27+2,y+14+8,1,false,1,true)
+							if v=="Attack" then spr(33,80+(i-1)*27+5,y+4,0,1,0,0,2,2) end
+							if v=="Defend" then spr(35,80+(i-1)*27+5,y+4,0,1,0,0,2,2) end
+       if v=="Spell" then spr(65,80+(i-1)*27+5,y+4,0,1,0,0,2,2) end
+							if v=="Item" then spr(67,80+(i-1)*27+5,y+4,0,1,0,0,2,2) end
+							if v=="Plus 1" then spr(97,80+(i-1)*27+5,y+4,0,1,0,0,2,2) end
+							if v=="Plus 2" then spr(99,80+(i-1)*27+5,y+4,0,1,0,0,2,2) end
+							if v=="Plus 3" then spr(129,80+(i-1)*27+5,y+4,0,1,0,0,2,2) end
+							if v=="Draft" then spr(131,80+(i-1)*27+5,y+4,0,1,0,0,2,2) end
+							if v=="Honey" then spr(163,80+(i-1)*27+5,y+4,0,1,0,0,2,2) end
+							if v=="Spike" then spr(193,80+(i-1)*27+5,y+4,0,1,0,0,2,2) end
+							if v=="Sleep" then spr(195,80+(i-1)*27+5,y+4,0,1,0,0,2,2) end
+							if v=="Clone" then spr(225,80+(i-1)*27+5,y+4,0,1,0,0,2,2) end
 					end
 			end
 
@@ -1393,7 +1404,7 @@ function cursorctrl()
 											ins(c.combo,{v,i})
 											table.sort(c.combo,function(a,b) return a[2]<b[2] end)
 											else
-											top='You can only pick 1 Plus card at a time.'
+											top='You can only pick 1 Plus card per turn.'
 											onlypick1_t=100
 											end
 									else
