@@ -239,6 +239,8 @@ function update()
 			end
 	end
 	
+	if card_ydist>0 then card_ydist=card_ydist-1 end
+
 	local w= print(top,0,1,15)
 	print(top,240/2-w/2,1,6)
 
@@ -290,6 +292,8 @@ function titlescr()
 		poke(0x3FFB,0) -- hide system cursor
 	
 		cls(12)
+		if newgame then clip(0,0,240,newgame*2); cls(15) end
+		clip()
 		
 		old_left=left		
 		mx,my,left=mouse()
@@ -318,7 +322,7 @@ function titlescr()
 		rect(240-8-8,24+8,8,72-24,6+math.floor(((bg_t)*0.15+1)%3)*3)
 		rect(240-8-16,24+8,8,72-24,6+math.floor(((bg_t)*0.15+2)%3)*3)
 		
-		if #animcards==0 then
+		if #animcards==0 and not newgame then
 				for i=1,8 do
 						animcards[i]={x=-27*2+(i-1)*27*2,y=0+32,id=rcard2()}
 				end
@@ -356,9 +360,12 @@ function titlescr()
 		
 		rect(0,136-32,240,32,15)
 
+		card_ydist=card_ydist or 0
+		if newgame then card_ydist=card_ydist+1 end
+		
 		for i,l in ipairs(titlecards) do
 				local x=(i-1)*27+12
-				local y=136-32
+				local y=136-32+card_ydist
 				rect(x,y,27,32,15)
 				if coll(c.x,c.y,1,1, x,y,27,32) then
 				local col
@@ -366,8 +373,8 @@ function titlescr()
 				else col=(t*FLASHSPD)%16 end
 				rectb(x,y,27,32,col)
 				print(l,x+2,y+14+8,col,false,1,true)
-				if btnp(4) or leftclick then
-						if i==1 then TIC=update; music() end
+				if (not newgame) and (btnp(4) or leftclick) then
+						if i==1 then newgame=0 end
 						if i==2 then TIC=options; c.state='card' end
 						if i==3 then TIC=credits end
 						sfx(4,12*3+5,12,2)
@@ -419,9 +426,11 @@ function titlescr()
 		print('Deluxe',240/2-60+40-30-10-dist,30+30+20-6-2+1,2,false,2,false)
 		print('Deluxe',240/2-60+40-30-10-dist,30+30+20-6-2,1,false,2,false)
 
-		dist=dist-6
+		if not newgame then dist=dist-6
 		if dist<=0 then dist=0 end
-		
+		end
+		if newgame then if newgame%2==0 then rem(animcards,#animcards) end; newgame=newgame+1; dist=dist+6; if #animcards==0 then music(); TIC=update; card_ydist=32; newgame=nil end end
+	
 		if btn(4) or left then c.sprite=37 else c.sprite=5 end
 		spr(c.sprite,c.x,c.y,4,1,0,0,2,2)
 
@@ -542,14 +551,16 @@ SFXVOL=5/6*15
 FLASHSPD=1
 
 function DJ()
-		poke4(0x14000*2,math.floor(MUSICVOL))
-		poke4(0x14000*2+1,math.floor(MUSICVOL))
-		poke4(0x14000*2+2,math.floor(MUSICVOL))
-		poke4(0x14000*2+3,math.floor(MUSICVOL))
+		local fade=0
+		if newgame then fade=newgame*0.2; if fade>MUSICVOL then fade=MUSICVOL end end
+		poke4(0x14000*2,math.floor(MUSICVOL-fade))
+		poke4(0x14000*2+1,math.floor(MUSICVOL-fade))
+		poke4(0x14000*2+2,math.floor(MUSICVOL-fade))
+		poke4(0x14000*2+3,math.floor(MUSICVOL-fade))
 		poke4(0x14000*2+4,math.floor(SFXVOL))
 		poke4(0x14000*2+5,math.floor(SFXVOL))
-		poke4(0x14000*2+6,math.floor(8/15*MUSICVOL))
-		poke4(0x14000*2+7,math.floor(8/15*MUSICVOL))
+		poke4(0x14000*2+6,math.floor(8/15*MUSICVOL-8/15*fade))
+		poke4(0x14000*2+7,math.floor(8/15*MUSICVOL-8/15*fade))
 		--poke4(0xFF9C*2+(3+1+32)+3,math.floor(MUSICVOL))
 		--poke4(0xFF9C*2+(3+1+32)*2+3,math.floor(SFXVOL))
 		--poke4(0xFF9C*2+(3+1+32)*3+3,math.floor(8/15*MUSICVOL))
@@ -966,29 +977,30 @@ function cursorctrl()
 					local v=cards[i]
 					if not v then break end
 					local x=(i-cam.i)*27+12
+					local y=136-32+card_ydist
 					if (not c.sleep) and coll(c.x,c.y,1,1, x,136-32,27,32) then
 							--hover
 							local col
 							if FLASHSPD==0 then col=14
 							else col=(t*FLASHSPD)%16 end						
-							rectb(x,136-32,27,32,col)
-							print(v,x+2,136-32+14+8,col,false,1,true)
+							rectb(x,y,27,32,col)
+							print(v,x+2,y+14+8,col,false,1,true)
 					else
-							rectb(x,136-32,27,32,1)
-							print(v,x+2,136-32+14+8,1,false,1,true)
+							rectb(x,y,27,32,1)
+							print(v,x+2,y+14+8,1,false,1,true)
 					end
-					if v=="Attack" then spr(33,x+5,136-32+4,0,1,0,0,2,2) end
-					if v=="Defend" then spr(35,x+5,136-32+4,0,1,0,0,2,2) end
-					if v=="Spell" then spr(65,x+5,136-32+4,0,1,0,0,2,2) end
-					if v=="Item" then spr(67,x+5,136-32+4,0,1,0,0,2,2) end
-					if v=="Plus 1" then spr(97,x+5,136-32+4,0,1,0,0,2,2) end
-					if v=="Plus 2" then spr(99,x+5,136-32+4,0,1,0,0,2,2) end
-					if v=="Plus 3" then spr(129,x+5,136-32+4,0,1,0,0,2,2) end
-					if v=="Draft" then spr(131,x+5,136-32+4,0,1,0,0,2,2) end
-					if v=="Honey" then spr(163,x+5,136-32+4,0,1,0,0,2,2) end
-					if v=="Spike" then spr(193,x+5,136-32+4,0,1,0,0,2,2) end
-					if v=="Sleep" then spr(195,x+5,136-32+4,0,1,0,0,2,2) end
-					if v=="Clone" then spr(225,x+5,136-32+4,0,1,0,0,2,2) end
+					if v=="Attack" then spr(33,x+5,y+4,0,1,0,0,2,2) end
+					if v=="Defend" then spr(35,x+5,y+4,0,1,0,0,2,2) end
+					if v=="Spell" then spr(65,x+5,y+4,0,1,0,0,2,2) end
+					if v=="Item" then spr(67,x+5,y+4,0,1,0,0,2,2) end
+					if v=="Plus 1" then spr(97,x+5,y+4,0,1,0,0,2,2) end
+					if v=="Plus 2" then spr(99,x+5,y+4,0,1,0,0,2,2) end
+					if v=="Plus 3" then spr(129,x+5,y+4,0,1,0,0,2,2) end
+					if v=="Draft" then spr(131,x+5,y+4,0,1,0,0,2,2) end
+					if v=="Honey" then spr(163,x+5,y+4,0,1,0,0,2,2) end
+					if v=="Spike" then spr(193,x+5,y+4,0,1,0,0,2,2) end
+					if v=="Sleep" then spr(195,x+5,y+4,0,1,0,0,2,2) end
+					if v=="Clone" then spr(225,x+5,y+4,0,1,0,0,2,2) end
 					if c.sleep then
 							for i=1,7 do
 							line(x,136-32+i,x+27-1,136-32+32-8+i,6)
@@ -1065,7 +1077,7 @@ function cursorctrl()
 	end
 	
 	if c.state~="idle" and c.state~="hit" and c.state~="card" and c.state~='waitsfx' then
-			if btn(5) or right then c.state="idle"; c.combo=nil; c.cardno=nil; top='Nevermind.'; onlypick1_t=nil; nevermind_t=60 end
+			if btn(5) or right then c.state="idle"; c.combo=nil; c.cardno=nil; top='Nevermind.'; onlypick1_t=nil; cloneitself_t=nil; nevermind_t=60 end
 	end
 	if c.state=="Spell" then
 			if c.combo then top=string.format('Hit all enemies for %d+%d HP.',1-c.honey,combovalue())
@@ -1257,7 +1269,7 @@ function cursorctrl()
 					if not v then break end
 					local x=(i-cam.i)*27+12
 					--if #cards>7 then x=x+12 end
-					local y=136-32
+					local y=136-32+card_ydist
 					if c.combo then for j,w in ipairs(c.combo) do if w[2]==i then y=y-8; rect(x,y,27,32,15); break end end end
 					if i==c.cardno then y=y-8; rect(x,y,27,32,15) end
 					if (not c.sleep) and coll(c.x,c.y,1,1, x,y,27,32) then
@@ -1368,7 +1380,7 @@ function cursorctrl()
 					if not v then break end
 					local x=(i-cam.i)*27+12
 					--if #cards>7 then x=x+12 end
-					local y=136-32
+					local y=136-32+card_ydist
 					if c.combo then for j,w in ipairs(c.combo) do if w[2]==i then y=y-8; rect(x,y,27,32,15); break end end end
 					if (not c.sleep) and coll(c.x,c.y,1,1, x,y,27,32) then
 							--hover
