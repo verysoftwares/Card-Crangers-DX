@@ -907,9 +907,9 @@ function cursorctrl()
 
 	if c.state=="card" then
 			if c.draft and c.maxdraft>1 then
-			top = string.format("Pick 1, sacrifice 2. (%d/%d)",c.maxdraft-c.draft+1,c.maxdraft)
+			top = string.format("Pick 1, discard 2. (%d/%d)",c.maxdraft-c.draft+1,c.maxdraft)
 			else
-			top = "Pick 1, sacrifice 2."
+			top = "Pick 1, discard 2."
 			end
 			if not deckcards then deckcards={rcard(),rcard(),rcard()} end
 
