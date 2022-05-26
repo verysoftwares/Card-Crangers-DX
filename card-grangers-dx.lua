@@ -1065,7 +1065,7 @@ function cursorctrl()
 	end
 	
 	if c.state~="idle" and c.state~="hit" and c.state~="card" and c.state~='waitsfx' then
-			if btn(5) or right then c.state="idle"; c.combo=nil; top='Nevermind.'; nevermind_t=60 end
+			if btn(5) or right then c.state="idle"; c.combo=nil; c.cardno=nil; top='Nevermind.'; onlypick1_t=nil; nevermind_t=60 end
 	end
 	if c.state=="Spell" then
 			if c.combo then top=string.format('Hit all enemies for %d+%d HP.',1-c.honey,combovalue())
@@ -1258,12 +1258,13 @@ function cursorctrl()
 					local x=(i-cam.i)*27+12
 					--if #cards>7 then x=x+12 end
 					local y=136-32
-					--if c.combo then for j,w in ipairs(c.combo) do if w[2]==i then y=y-8; rect(x,y,27,32,15); break end end end
+					if c.combo then for j,w in ipairs(c.combo) do if w[2]==i then y=y-8; rect(x,y,27,32,15); break end end end
+					if i==c.cardno then y=y-8; rect(x,y,27,32,15) end
 					if (not c.sleep) and coll(c.x,c.y,1,1, x,y,27,32) then
 							--hover
 								
 							if btn(4) or leftclick then
-									if i~=c.cardno then 
+									if i~=c.cardno and ((not c.combo) or i~=c.combo[1][2]) then 
 									for j=1,1+combovalue() do
 											ins(cards,v)
 											drafted=drafted+1
@@ -1278,8 +1279,13 @@ function cursorctrl()
 									cloneitself_t=nil
 									clearcards()
 									else
+									if i==c.cardno then
 									top='The card can\'t clone itself.'
 									cloneitself_t=100
+									elseif c.combo and i==c.combo[1][2] then
+									top='The card can\'t clone its own combo card.'
+									cloneitself_t=100
+									end
 									end
 							end
 
@@ -1318,6 +1324,7 @@ function cursorctrl()
 					end
 			end
 	end
+	if not onlypick1_t then
 	if sub(c.state,1,4)=='Plus' then
 			top='Select a combo card.'
 	end
@@ -1325,6 +1332,11 @@ function cursorctrl()
 			if nevermind_t then nevermind_t=nevermind_t-1; if nevermind_t<=0 then nevermind_t=nil end 
 			else top="Select an action." end
 	end
+	else
+	onlypick1_t=onlypick1_t-1
+	if onlypick1_t<=0 then onlypick1_t=nil end
+	end
+	
 	if c.sleep then
 			top='You are asleep.'
 	end
@@ -1365,8 +1377,13 @@ function cursorctrl()
 									if sub(v,1,4)=='Plus' then
 											if c.combo then for j,w in ipairs(c.combo) do if w[2]==i then goto skip end end end
 											c.combo=c.combo or {}
+											if #c.combo<1 then
 											ins(c.combo,{v,i})
 											table.sort(c.combo,function(a,b) return a[2]<b[2] end)
+											else
+											top='You can only pick 1 Plus card at a time.'
+											onlypick1_t=100
+											end
 									else
 									c.cardno=i
 									end
