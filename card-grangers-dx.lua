@@ -560,7 +560,7 @@ function options()
 		cls(12)
 
 		old_left=left		
-		mx,my,left=mouse()
+		mx,my,left,_,right=mouse()
 		if not leftclick then
 				leftclick=left and not old_left
 		else
@@ -588,6 +588,13 @@ function options()
 
 		rect(0,136-32,240,32,15)
 		rect(0,0,240,8,15)
+		
+		if right then
+				c.combo=nil
+				local select=false
+				for i,v in ipairs({'Music','SFX','Flash'}) do if find(optcards,v) then select=true; break end end
+				if select then c.state='idle' end
+		end
 		
 		if 1 then--c.state=="card" or nonplussed() then
 				local select=false
@@ -863,7 +870,7 @@ end
 cam={i=1}
 function cursorctrl()
 	old_left=left
-	_,_,left=mouse()
+	_,_,left,_,right=mouse()
 	if not leftclick then
 			leftclick=left and not old_left
 	else
@@ -1050,8 +1057,8 @@ function cursorctrl()
 			end
 	end
 	
-	if c.state~="idle" and c.state~="hit" and c.state~="card" then
-			if btn(5) then c.state="idle" end
+	if c.state~="idle" and c.state~="hit" and c.state~="card" and c.state~='waitsfx' then
+			if btn(5) or right then c.state="idle"; c.combo=nil; top='Nevermind.'; nevermind_t=60 end
 	end
 	if c.state=="Spell" then
 			if c.combo then top=string.format('Hit all enemies for %d+%d HP.',1-c.honey,combovalue())
@@ -1307,7 +1314,8 @@ function cursorctrl()
 			top='Select a combo card.'
 	end
 	if c.state=="idle" then
-			top="Select an action."
+			if nevermind_t then nevermind_t=nevermind_t-1; if nevermind_t<=0 then nevermind_t=nil end 
+			else top="Select an action." end
 	end
 	if c.sleep then
 			top='You are asleep.'
@@ -1608,7 +1616,7 @@ end
 -- 211:0aaaaa0000000009000000090000000000000000000000000000000000000000
 -- 212:90000000000aaa0099000a00000a0000000aaa00000000000000000000000000
 -- 213:0000000000090000000900000090009000900090009009000900090009000900
--- 214:00000000000000000aa000000a0a00000a0aa000a00aa000a000aaa0a0aaaaa0
+-- 214:000000000000000000a000000a0a00000a0aa000a00aa000a000aaa0a0aaaaa0
 -- 216:000e6663000e666600093666000e33660009e333000093330000933300000933
 -- 217:336663333666633336663333366333333333333e3333333e33333e9e3339e9e9
 -- 218:e00a3a3ae00aa3aae000aa3ae000a33aeeee333aeeeeeea3ee333eaae33333ee
@@ -1622,7 +1630,7 @@ end
 -- 227:0000000000000009000000090000000900000090000000900000099000009900
 -- 228:0000000000000000900000009000000090000000900000000990000000999000
 -- 229:0900090009000900009009000090009000900090000900000009000000000000
--- 230:a0aaaaa0a000aaa0a00aa0000a0aa0000a0a00000aa000000000000000000000
+-- 230:a0aaaaa0a000aaa0a00aa0000a0aa0000a0a000000a000000000000000000000
 -- 232:0000009300000009000000000000000000000000000000090000009900000990
 -- 233:39909e9e900099e3000099930009993309909933900009330000993300099933
 -- 234:3333333e333333333333333e333333ee3333ee3e333333ee333e39e933939e9e
