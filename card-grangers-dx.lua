@@ -266,6 +266,17 @@ function update()
 	if keyp(18) then music(); reset() end
 	end
 
+	if encounter>=5 and c.state~='card' then
+			local w=print('You win!',0,-12,15,false,2,false)
+			print('You win!',240/2-w/2-1,80-24-8,1,false,2,false)
+			print('You win!',240/2-w/2+1,80-24-8,1,false,2,false)
+			print('You win!',240/2-w/2,80-24-8-1,1,false,2,false)
+			print('You win!',240/2-w/2,80-24-8+1,1,false,2,false)
+			local col=(t*FLASHSPD)%16
+			if FLASHSPD==0 then col=14 end
+			print('You win!',240/2-w/2,80-24-8,col,false,2,false)
+	end
+
 	spr(c.sprite,c.x,c.y,4,1,0,0,2,2)
 	
 	t=t+1
@@ -453,6 +464,8 @@ TIC=titlescr
 
 function credits()
 		--poke4(0xFF9C*2+3,5)
+		cls(15)
+		
 		old_left=left		
 		mx,my,left=mouse()
 		if not leftclick then
@@ -465,31 +478,38 @@ function credits()
 		poke(0x3FFB,0) -- hide system cursor
 
 		DJ()
+
+		distb=distb or 0
+		card_disty=card_disty or 0
 		
 		local cycle={6,9,12,15}
 		for i=0,136,8 do
 				local col=cycle[((i+t*0.4*FLASHSPD)//8)%4+1]
-				rect(0,i,240,8,col)
+				if (i/8)%2==0 then
+				rect(-distb,i,240,8,col)
+				else
+				rect(distb,i,240,8,col)
+				end
 				local col2=cycle[((i+t*0.4*FLASHSPD)//8+1)%4+1]
 				if i==8*3 then 
 				local w=print('Design, art, audio & code by',0,-6,col2,false,1,false)
-				print('Design, art, audio & code by',240/2-w/2,8*3+1,col2,false,1,false)
+				print('Design, art, audio & code by',240/2-w/2+distb,8*3+1,col2,false,1,false)
 				end
 				if i==8*4 then 
 				local w=print('verysoftwares',0,-6,col2,false,1,false)
-				print('verysoftwares',240/2-w/2,8*4+1,col2,false,1,false)
+				print('verysoftwares',240/2-w/2-distb,8*4+1,col2,false,1,false)
 				end
 				if i==8*6 then 
 				local w=print('Originally for Ludum Dare 43',0,-6,col2,false,1,false)
-				print('Originally for Ludum Dare 43',240/2-w/2,8*6+1,col2,false,1,false)
+				print('Originally for Ludum Dare 43',240/2-w/2-distb,8*6+1,col2,false,1,false)
 				end
 				if i==8*8 then 
 				local w=print('Special thanks to',0,-6,col2,false,1,false)
-				print('Special thanks to',240/2-w/2,8*8+1,col2,false,1,false)
+				print('Special thanks to',240/2-w/2-distb,8*8+1,col2,false,1,false)
 				end
 				if i==8*9 then 
 				local w=print('Stefan & Yollie',0,-6,col2,false,1,false)
-				print('Stefan & Yollie',240/2-w/2,8*9+1,col2,false,1,false)
+				print('Stefan & Yollie',240/2-w/2+distb,8*9+1,col2,false,1,false)
 				end
 		end
 
@@ -497,7 +517,7 @@ function credits()
 
 		for i,l in ipairs(titlecards) do
 				local x=(i-1)*27+12
-				local y=136-32
+				local y=136-32+card_disty
 				rect(x,y,27,32,15)
 				if coll(c.x,c.y,1,1, x,y,27,32) then
 				local col
@@ -505,8 +525,8 @@ function credits()
 				else col=(t*FLASHSPD)%16 end
 				rectb(x,y,27,32,col)
 				print(l,x+2,y+14+8,col,false,1,true)
-				if btnp(4) or leftclick then
-						if i==1 then TIC=update; music() end
+				if (not newgame) and (btnp(4) or leftclick) then
+						if i==1 then newgame=0 end
 						if i==2 then TIC=options; c.state='card' end
 						if i~=3 then sfx(4,12*3+5,12,2) end
 				end
@@ -521,17 +541,65 @@ function credits()
 				local col
 				if FLASHSPD==0 then col=14
 				else col=(t*FLASHSPD)%16 end
-				rectb(240-27,136-32,27,32,col)
-				print('Skip',240-27+2,136-32+14+8,col,false,1,true)
-				spr(161,240-27+5,136-32+4,0,1,0,0,2,2)
-				if btn(4) or left then
+				rectb(240-27,136-32+card_disty,27,32,col)
+				print('Skip',240-27+2,136-32+14+8+card_disty,col,false,1,true)
+				spr(161,240-27+5,136-32+4+card_disty,0,1,0,0,2,2)
+				if (not newgame) and (btn(4) or left) then
 						TIC=titlescr
 						sfx(4,12*3+5,12,2)
 				end
 		else
-				rectb(240-27,136-32,27,32,1)
-				print('Skip',240-27+2,136-32+14+8,1,false,1,true)
-				spr(161,240-27+5,136-32+4,0,1,0,0,2,2)
+				rectb(240-27,136-32+card_disty,27,32,1)
+				print('Skip',240-27+2,136-32+14+8+card_disty,1,false,1,true)
+				spr(161,240-27+5,136-32+4+card_disty,0,1,0,0,2,2)
+		end
+
+		if newgame then 
+		newgame=newgame+1 
+		distb=distb+6
+		if distb>=240 then
+				local incr=6*4
+				if distb>=240+incr*0 then
+				rect(0,8,240,8,6+math.floor(((bg_t)*0.15+2)%3)*3)
+				end
+				if distb>=240+incr*1 then
+				rect(0,16,240,8,6+math.floor(((bg_t)*0.15+1)%3)*3)
+				end
+				if distb>=240+incr*2 then
+				rect(0,24,240,8,6+math.floor((bg_t*0.15)%3)*3)
+				end
+				if distb>=240+incr*3 then
+				rect(0,72+24,240,8,6+math.floor(((bg_t)*0.15+2)%3)*3)
+				end
+				if distb>=240+incr*4 then
+				rect(0,72+16,240,8,6+math.floor(((bg_t)*0.15+1)%3)*3)
+				end
+				if distb>=240+incr*5 then
+				rect(0,72+8,240,8,6+math.floor((bg_t*0.15)%3)*3)
+				end
+				if distb>=240+incr*6 then
+				rect(0,24+8,8,72-24,6+math.floor((bg_t*0.15)%3)*3)
+				end
+				if distb>=240+incr*7 then
+				rect(8,24+8,8,72-24,6+math.floor(((bg_t)*0.15+1)%3)*3)
+				end
+				if distb>=240+incr*8 then
+				rect(16,24+8,8,72-24,6+math.floor(((bg_t)*0.15+2)%3)*3)
+				end
+				if distb>=240+incr*9 then
+				rect(240-8-0,24+8,8,72-24,6+math.floor((bg_t*0.15)%3)*3)
+				end
+				if distb>=240+incr*10 then
+				rect(240-8-8,24+8,8,72-24,6+math.floor(((bg_t)*0.15+1)%3)*3)
+				end
+				if distb>=240+incr*11 then
+				rect(240-8-16,24+8,8,72-24,6+math.floor(((bg_t)*0.15+2)%3)*3)
+				end
+				if distb>=240+incr*12 then
+						newgame=nil; music(); TIC=update
+				end
+		end
+		card_disty=card_disty+1
 		end
 
 		if btn(4) or left then c.sprite=37 else c.sprite=5 end
@@ -783,6 +851,7 @@ function nextturn()
 				if #enemies==0 then
 						encounter=encounter+1
 						turn=c
+						turn.state="card"
 						if encounter==2 then
 								ins(enemies,renemy(4))
 								ins(enemies,renemy(5))
@@ -792,14 +861,16 @@ function nextturn()
 								ins(enemies,renemy(2))
 								ins(enemies,renemy(3))
 								maxnmy=3
-						else
+						elseif encounter==4 then
 						  ins(enemies,renemy(6))
 								ins(enemies,renemy(7))
 								ins(enemies,renemy(8))
 								ins(enemies,renemy(9))
 								maxnmy=4
+						else
+								turn.state='idle'
+								turn.combo=nil
 						end
-						turn.state="card"
 						return
 				end
 				turn.state="card"
@@ -1415,6 +1486,7 @@ function cursorctrl()
 											else
 											top='You can only pick 1 Plus card per turn.'
 											onlypick1_t=100
+											goto skip
 											end
 									else
 									c.cardno=i
