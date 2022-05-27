@@ -844,7 +844,7 @@ function nextturn()
 				if c.sleep then c.sleep=c.sleep-1; if c.sleep<=0 then c.sleep=nil end end
 				turn=enemies
 				for i,e in ipairs(enemies) do
-						if (not e.sleep) and math.random(1,5)==1 then
+						if (not e.sleep) and math.random(1,4)==1 then
 								e.pending=true
 						end
 				end
