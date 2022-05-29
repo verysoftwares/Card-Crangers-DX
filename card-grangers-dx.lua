@@ -29,10 +29,10 @@ function renemy(place)
 		local e = allenemies[math.random(#allenemies)]
 		for i,f in ipairs(enemies) do if f.id==e then return renemy(place) end end
 		out.id=e
-		if out.id=="Rocopter" then if encounter==2 and find(old_enemies,out.id) then return renemy(place) end; out.sprite=76; out.hp=10-3; out.maxhp=10-3; out.atk=1 end
-		if out.id=="Cactic" then if encounter==2 and find(old_enemies,out.id) then return renemy(place) end;  out.sprite=140; out.hp=16-3; out.maxhp=16-3; out.atk=2 end
-		if out.id=="Bumbler" then if encounter==2 and find(old_enemies,out.id) then return renemy(place) end;  out.sprite=204; out.hp=9; out.maxhp=9; out.atk=3 end
-		if out.id=="Yggdra" then if encounter==1 then return renemy(place) end; out.sprite=261; out.hp=16; out.maxhp=16; out.atk=0 end
+		if out.id=="Rocopter" then if encounter==3 and find(old_enemies,out.id) then return renemy(place) end; out.sprite=76; out.hp=10-3; out.maxhp=10-3; out.atk=1 end
+		if out.id=="Cactic" then if encounter==3 and find(old_enemies,out.id) then return renemy(place) end;  out.sprite=140; out.hp=16-3; out.maxhp=16-3; out.atk=2 end
+		if out.id=="Bumbler" then if encounter==3 and find(old_enemies,out.id) then return renemy(place) end;  out.sprite=204; out.hp=9; out.maxhp=9; out.atk=3 end
+		if out.id=="Yggdra" then if encounter<3 then return renemy(place) end; out.sprite=261; out.hp=16; out.maxhp=16; out.atk=0 end
 		out.y=40
 		if place==1 then out.x=80-40+20 end
 		if place==2 then out.x=80+20 end
@@ -53,14 +53,8 @@ enemies={}
 --ins(enemies,renemy(1))
 --ins(enemies,renemy(3))
 --enemies[#enemies].origi=3
-ins(enemies,renemy(4))
-ins(enemies,renemy(5))
-maxnmy=2
-
-old_enemies={}
-for i,e in ipairs(enemies) do
-		ins(old_enemies,e.id)
-end
+ins(enemies,renemy(2))
+maxnmy=1
 
 --music(0)
 
@@ -127,7 +121,11 @@ function update()
 									elseif enemycard(turn.id)=='Sleep' then
 											c.sleep=c.sleep or 0
 											c.sleep=c.sleep+1
-											top=string.format('You are now asleep!',c.spike+1)
+											if c.sleep==1 then
+											top='You are now asleep!'
+											else
+											top=string.format('You are asleep for %d turns!',c.sleep)
+											end
 											turn.anim=140		
 											turn.pending=nil
 									elseif enemycard(turn.id)=='Clone' then
@@ -183,10 +181,25 @@ function update()
 					end
 			elseif turn.state=="card" then
 					if c.defending and not c.sleep then
+							local dmg=0
+							for i,e in ipairs(enemies) do
+									if not e.pending and not e.sleep then
+									dmg=dmg+(e.atk-e.honey)*(turn.hit.spike+1)
+									end
+							end
+							
+							if math.abs(dmg)>0 then
 							if #enemies>1 then
 							top='Enemies were blocked.'
 							else
 							top=string.format('%s was blocked.',enemies[1].id)
+							end
+							else
+							if #enemies>1 then
+							top=string.format('Enemies deal no damage.')
+							else
+							top=string.format('%s deals no damage.',enemies[1].id)
+							end
 							end
 							sfx(2,12*2,80,2)
 							turn.state='hit'
@@ -213,6 +226,7 @@ function update()
 							else
 							top=string.format('%s deals no damage.',enemies[1].id)
 							end
+							sfx(2,12*2,80,2)
 							end
 							turn.state="hit"
 							turn.anim=100
@@ -266,7 +280,7 @@ function update()
 	if keyp(18) then music(); reset() end
 	end
 
-	if encounter>=5 and c.state~='card' then
+	if encounter>=6 and c.state~='card' then
 			local w=print('You win!',0,-12,15,false,2,false)
 			print('You win!',240/2-w/2-1,80-24-8,1,false,2,false)
 			print('You win!',240/2-w/2+1,80-24-8,1,false,2,false)
@@ -596,7 +610,7 @@ function credits()
 				rect(240-8-16,24+8,8,72-24,6+math.floor(((bg_t)*0.15+2)%3)*3)
 				end
 				if distb>=240+incr*12 then
-						newgame=nil; music(); TIC=update
+						newgame=nil; card_ydist=32; music(); TIC=update
 				end
 		end
 		card_disty=card_disty+1
@@ -856,12 +870,20 @@ function nextturn()
 								ins(enemies,renemy(4))
 								ins(enemies,renemy(5))
 								maxnmy=2
+								old_enemies={}
+								for i,e in ipairs(enemies) do
+										ins(old_enemies,e.id)
+								end
 						elseif encounter==3 then
+								ins(enemies,renemy(4))
+								ins(enemies,renemy(5))
+								maxnmy=2
+						elseif encounter==4 then
 								ins(enemies,renemy(1))
 								ins(enemies,renemy(2))
 								ins(enemies,renemy(3))
 								maxnmy=3
-						elseif encounter==4 then
+						elseif encounter==5 then
 						  ins(enemies,renemy(6))
 								ins(enemies,renemy(7))
 								ins(enemies,renemy(8))
@@ -899,6 +921,7 @@ function nextturn()
 						turn.state='hit'
 						turn.anim=140
 						top=string.format('%s uses card: %s!',turn.id,enemycard(turn.id))
+						sfx(6,'A-5',80,2)
 				end
 		end
 		for i,e in ipairs(enemies) do
@@ -1827,11 +1850,12 @@ end
 
 -- <SFX>
 -- 000:010001000200020002000200000000000000010002000100020002000100000001000100010001000100010001000100020002000200020002000200300000000000
--- 001:000000000000000000000000000000000000010001000100010001000100010001000000000000000000000000000000000000000000020002000200100000000000
--- 002:020002000200020002000200020002000200020002000200020002000200020002000200020002000100010001000100010001000000000000000200100000000000
+-- 001:000000000000000000000000000000000000010001000100010001000100010001000000000000000000000000000000000000000000020002000200200000000000
+-- 002:020002000200020002000200020002000200020002000200020002000200020002000200020002000100010001000100010001000000000000000200109000000000
 -- 003:020002000200020002000200020002000200020001000200020002000200020000000200020002000200020001000100010001000100020001000100300000000000
 -- 004:000001000200000001000200000001000200000001000200000001000200000001000200010001000100010001000100010000000100010001000100305000000000
 -- 005:030003000300030003000300030003000300030003000300030003000300030003000300030003000300030003000300030003000300030003000300000000000000
+-- 006:010002000200020002000200020002000200010001000000000000000000010001000100010002000100010001000000010000000100000001000000409000000000
 -- 008:040004000400040004000400040004000400040004000400040004000400040004000400040004000400040004000400040004000400040004000400000000000000
 -- 009:010001000100010001000100010001000100010001000100010001000100010001000100010001000100010001000100010001000100010001000100000000000000
 -- 010:020002000200020002000200020002000200020002000200020002000200020002000200020002000200020002000200020002000200020002000200000000000000
