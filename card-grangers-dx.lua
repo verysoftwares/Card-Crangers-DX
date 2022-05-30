@@ -184,7 +184,7 @@ function update()
 							local dmg=0
 							for i,e in ipairs(enemies) do
 									if not e.pending and not e.sleep then
-									dmg=dmg+(e.atk-e.honey)*(turn.hit.spike+1)
+									dmg=dmg+(e.atk-e.honey)*(c.spike+1)
 									end
 							end
 							
