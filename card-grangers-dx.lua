@@ -1156,10 +1156,10 @@ function cursorctrl()
 					break
 					else
 					if c.honeymem then for j,d in ipairs(c.honeymem) do
-							if d[1]==i then c.honey=c.honey-d[2]; top=string.format('You are free from %s\'s Honey!',e.id); c.anim=140; c.hit=nil; honeyrem=true break end
+							if d[1]==i then c.honey=c.honey-d[2]; rem(c.honeymem,j); top=string.format('You are free from %s\'s Honey!',e.id); c.anim=140; c.hit=nil; honeyrem=true break end
 					end end
 					if c.spikemem then for j,d in ipairs(c.spikemem) do
-							if d[1]==i then c.spike=c.spike-d[2]; top=string.format('You are free from %s\'s Spike!',e.id); c.anim=140; c.hit=nil; spikerem=true break end
+							if d[1]==i then c.spike=c.spike-d[2]; rem(c.spikemem,j); top=string.format('You are free from %s\'s Spike!',e.id); c.anim=140; c.hit=nil; spikerem=true break end
 					end end
 					end 
 					table.remove(enemies,i)
