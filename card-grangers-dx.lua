@@ -2,6 +2,7 @@
 -- author: verysoftwares.itch.io
 -- desc:   minimalist card battles
 -- script: lua
+-- saveid: card-grangers
 
 sub=string.sub
 ins=table.insert
@@ -637,6 +638,9 @@ end
 MUSICVOL=5/6*15
 SFXVOL=5/6*15
 FLASHSPD=1
+if pmem(0)>0 then MUSICVOL=pmem(0)-1 end
+if pmem(1)>0 then SFXVOL=pmem(1)-1 end
+if pmem(2)>0 then FLASHSPD=(pmem(2)-1)/10 end
 
 function DJ()
 		local fade=0
@@ -777,9 +781,9 @@ function options()
 								top='This card must be combo\'d with a Plus card.'
 								mustbecombod_t=140
 								else
-										if l=='Music' then MUSICVOL=15/6*combovalue(); top=string.format('Music volume set to %d/6.',combovalue()) end
-										if l=='SFX' then SFXVOL=15/6*combovalue(); top=string.format('SFX volume set to %d/6.',combovalue()) end
-										if l=='Flash' then FLASHSPD=combovalue()*0.2; top=string.format('Flashing speed set to %d/6.',combovalue()) end
+										if l=='Music' then MUSICVOL=15/6*combovalue(); top=string.format('Music volume set to %d/6.',combovalue()); pmem(0,math.floor(MUSICVOL+1)) end
+										if l=='SFX' then SFXVOL=15/6*combovalue(); top=string.format('SFX volume set to %d/6.',combovalue()); pmem(1,math.floor(SFXVOL+1)) end
+										if l=='Flash' then FLASHSPD=combovalue()*0.2; top=string.format('Flashing speed set to %d/6.',combovalue()); pmem(2,math.floor(FLASHSPD*10+1)) end
 										c.state='hit'
 										c.anim=140
 										c.cardno=i
